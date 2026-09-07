@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — sitetrace API</title>
+  <meta name="description" content="What sitetrace API collects, what it doesn't, and what you agree to by using the service." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/privacy/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none; text-align: left;">
+      <h1>Privacy</h1>
+      <p class="muted">Plain-English version. Last updated January 2026.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>What we collect</h2>
+      <p>To run the service, we have to keep some data:</p>
+      <ul>
+        <li><strong>Your email</strong>, if you sign up. Used only to recover your API key if you lose it. Never sold, never shared.</li>
+        <li><strong>Your API key</strong>. Hashed in our database. Used to authenticate your requests.</li>
+        <li><strong>Call logs</strong>: which API key called which endpoint, when, and the response status. Used for usage tracking, abuse detection, and the dashboard. Not used for anything else. Retained for 30 days.</li>
+        <li><strong>The IP address making the request</strong>, for the free-tier rate limit and the audit log. Not used for any other purpose.</li>
+        <li><strong>Billing data</strong>: handled by Paddle. We never see your card number. Paddle stores it.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What we don't collect</h2>
+      <ul>
+        <li>No third-party analytics (no Google Analytics, no Mixpanel, no Segment). We don't track you across the site.</li>
+        <li>No fingerprinting.</li>
+        <li>No data sharing with advertisers. (We don't have any.)</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>What about the URLs you screenshot?</h2>
+      <p>When you call <code>/api/shot</code>, our server fetches the URL you passed. We do not store the URL or the screenshot beyond the 5-minute edge cache that makes repeat calls fast. We do not analyze the content, we do not pass it to any third party, and we do not use it for any purpose other than giving you back the image you asked for.</p>
+      <p>If you call <code>/api/preview</code>, we fetch the URL, parse the HTML, and return the metadata. Same policy: no storage beyond the 5-minute cache.</p>
+      <p>If you call <code>/api/headers</code>, we fetch the URL, read the response headers, and return the analysis. We do not store the response body.</p>
+      <p>If you call <code>/api/certs</code>, we query crt.sh and cache the result for 24 hours so we don't hammer their service. The cache is keyed on the domain you queried.</p>
+    </section>
+
+    <section>
+      <h2>Cookies</h2>
+      <p>None set by us. Paddle may set a cookie during checkout. Cloudflare may set a cookie for rate-limiting (their <code>__cf_bm</code>); it's a security feature, not an analytics tool.</p>
+    </section>
+
+    <section>
+      <h2>Your rights</h2>
+      <p>Email <code>privacy@sitetrace.it.com</code> and we'll:</p>
+      <ul>
+        <li>Send you everything we have on your account.</li>
+        <li>Delete your account, your key, your call logs, and any cached results within 7 days.</li>
+        <li>Cancel any active subscription and confirm the cancellation in writing.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>Changes to this policy</h2>
+      <p>If we change anything material, we'll email you. Minor wording fixes will be silently updated with a "last updated" date.</p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Documentation — sitetrace API</title>
+  <meta name="description" content="Full reference for the 6 sitetrace API endpoints: screenshot, IP reputation, email deliverability, HTTP headers, URL preview, SSL certificate lookup." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/docs/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/" class="active">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>Documentation</h1>
+      <p class="lede">One API key works on all 6 endpoints. Free tier is 100 calls/day, no signup. Get a key for 1,000/day at <a href="/signup/">/signup</a>.</p>
+    </section>
+
+    <section>
+      <h2>Authentication</h2>
+      <p>Two ways to authenticate:</p>
+      <pre><code># 1. Authorization header (recommended)
+curl https://api.sitetrace.it.com/api/shot?url=https://example.com \
+  -H "Authorization: Bearer stk_your_key_here"
+
+# 2. Query string (handy for curl)
+curl "https://api.sitetrace.it.com/api/shot?url=https://example.com&key=stk_your_key_here"</code></pre>
+      <p>If you omit the key, the request falls through to the free no-signup tier (100 calls/day per IP). All endpoints support this.</p>
+      <h3>Response codes</h3>
+      <table>
+        <tr><th>Code</th><th>Meaning</th></tr>
+        <tr><td>200</td><td>Success.</td></tr>
+        <tr><td>400</td><td>Invalid input (bad URL, bad domain, etc.). Body is JSON with <code>error</code> and <code>message</code>.</td></tr>
+        <tr><td>401</td><td>Invalid or missing API key (only when one is provided).</td></tr>
+        <tr><td>403</td><td>Subscription is cancelled or expired. Update billing.</td></tr>
+        <tr><td>404</td><td>Unknown API key.</td></tr>
+        <tr><td>429</td><td>Quota exceeded (per IP for free, per key for paid). Body explains the limit + how to upgrade.</td></tr>
+        <tr><td>502</td><td>Upstream failure (crt.sh timeout, target URL fetch failed, etc.).</td></tr>
+        <tr><td>5xx</td><td>Our fault. <a href="/status/">Check the status page</a> if persistent.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Endpoints</h2>
+
+      <h3 style="margin-top: 24px;"><code>/api/shot</code> — Screenshot <a href="/shot/" style="font-size: 14px; font-weight: 500;">→ full page</a></h3>
+      <pre><code>GET /api/shot?url=https://example.com&device=desktop&width=1280&height=720&full=false&wait=0&dark=false&format=png</code></pre>
+      <p>Returns <code>image/png</code> (or <code>image/jpeg</code> with <code>format=jpeg</code>). All params optional except <code>url</code>. <a href="/shot/">Full reference</a>.</p>
+
+      <h3 style="margin-top: 32px;"><code>/api/ip</code> — IP Reputation <a href="/ip/" style="font-size: 14px; font-weight: 500;">→ full page</a></h3>
+      <pre><code>GET /api/ip?ip=1.2.3.4</code></pre>
+      <p>Returns JSON. Queries 7 DNSBLs in parallel (Spamhaus ZEN, Spamcop, Barracuda, CBL, SORBS, UCEPROTECT L1, PSBL) + ip-api.com geolocation. Composite 0–100 score, low/medium/high risk. <a href="/ip/">Full reference</a>.</p>
+
+      <h3 style="margin-top: 32px;"><code>/api/email</code> — Email Deliverability <a href="/email/" style="font-size: 14px; font-weight: 500;">→ full page</a></h3>
+      <pre><code>GET /api/email?domain=example.com</code></pre>
+      <p>Returns JSON. SPF + DKIM (probed across 20 common selectors) + DMARC + MX + BIMI. 0–100 score. <a href="/email/">Full reference</a>.</p>
+
+      <h3 style="margin-top: 32px;"><code>/api/headers</code> — HTTP Header Score <a href="/headers/" style="font-size: 14px; font-weight: 500;">→ full page</a></h3>
+      <pre><code>GET /api/headers?url=https://example.com</code></pre>
+      <p>Returns JSON. 8 security headers checked: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, X-XSS-Protection, Server. 0–100 score, A–F grade.</p>
+
+      <h3 style="margin-top: 32px;"><code>/api/preview</code> — URL Preview / Open Graph <a href="/preview/" style="font-size: 14px; font-weight: 500;">→ full page</a></h3>
+      <pre><code>GET /api/preview?url=https://example.com</code></pre>
+      <p>Returns JSON. Title, description, image, favicon, theme color, full <code>og:*</code> and <code>twitter:*</code> objects. Fetches with the Facebook crawler UA to get the most-tag-rich HTML variant.</p>
+
+      <h3 style="margin-top: 32px;"><code>/api/certs</code> — SSL / Certificate Transparency <a href="/certs/" style="font-size: 14px; font-weight: 500;">→ full page</a></h3>
+      <pre><code>GET /api/certs?domain=example.com&exclude=expired.example.com&limit=200</code></pre>
+      <p>Returns JSON. Wraps crt.sh with 24h cache. List of every cert ever issued for the domain (and any subdomains). Excludes and limits optional.</p>
+    </section>
+
+    <section>
+      <h2>Operational notes</h2>
+      <h3>Rate limit headers</h3>
+      <p>Every authenticated response includes:</p>
+      <pre><code>X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 873
+X-RateLimit-Reset: 1735689600   (unix ts of next UTC midnight)</code></pre>
+      <h3>Caching</h3>
+      <p>Screenshots and SSL/CT lookups are cached at the edge (5 min and 24 h respectively). IP, email, and header lookups are <code>no-store</code> because the answer depends on who is asking or is too volatile to cache. The URL preview caches for 5 min.</p>
+      <h3>CORS</h3>
+      <p>All endpoints return <code>Access-Control-Allow-Origin: *</code>. <code>OPTIONS</code> preflights are answered with 204. Use the API directly from a browser if you want.</p>
+    </section>
+
+    <section>
+      <h2>Status &amp; changelog</h2>
+      <p><a href="/status/">/status</a> — live service health, refreshed every 30s.</p>
+      <p><a href="/changelog/">/changelog</a> — what changed in each release.</p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/privacy/">Privacy</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

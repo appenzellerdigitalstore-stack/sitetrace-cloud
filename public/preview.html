@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>URL Preview API — Open Graph + Twitter Card | sitetrace API</title>
+  <meta name="description" content="Extract Open Graph, Twitter Card, favicon, theme color from any URL. Used by chat bots, newsletter tools, link-in-bio apps. Free tier: 100 calls/day, no signup." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/preview/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/" class="active">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <span class="badge">/api/preview</span>
+      <h1>Link previews, in one call.</h1>
+      <p class="lede">Open Graph, Twitter Card, favicon, theme color. The metadata layer under every "paste a link and get a rich card" feature.</p>
+    </section>
+
+    <section>
+      <h2>Try it</h2>
+      <pre><code>curl "https://api.sitetrace.it.com/api/preview?url=https://www.nytimes.com" | jq</code></pre>
+      <pre><code>{
+  "url": "https://www.nytimes.com",
+  "final_url": "https://www.nytimes.com/",
+  "title": "The New York Times - Breaking News, World News & Multimedia",
+  "description": "Live news, investigations, opinion, photo galleries and video from the New York Times.",
+  "image": "https://static01.nyt.com/images/misc/NYT_logo_widget.png",
+  "favicon": "https://www.nytimes.com/favicon.ico",
+  "theme_color": null,
+  "og": { "title": "...", "image": "...", "type": "website", "site_name": "The New York Times" },
+  "twitter": { "card": "summary_large_image", "site": "@nytimes" }
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <p>We fetch the URL with the Facebook crawler User-Agent (<code>facebookexternalhit/1.1</code>). Most sites serve a tag-rich variant to crawlers, so this gets the same metadata that Slack, Twitter, and iMessage would show. We don't execute JavaScript — for SPAs that hydrate, use the <a href="/shot/">screenshot API</a> instead.</p>
+      <p>The response is cached at the edge for 5 minutes, so popular URLs cost you nothing.</p>
+    </section>
+
+    <section>
+      <h2>Use it to</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Slack / Discord bots</h3>
+          <p>When a user pastes a link, call this and post a rich embed. The bot stays fast; the preview stays fresh.</p>
+        </div>
+        <div class="api-card">
+          <h3>Newsletter builders</h3>
+          <p>Pre-fill link cards with the right title, image, and description as the author types.</p>
+        </div>
+        <div class="api-card">
+          <h3>Link-in-bio / bookmark tools</h3>
+          <p>Auto-fill cards when a user adds a link. No more "enter the title and image manually".</p>
+        </div>
+        <div class="api-card">
+          <h3>Read-later apps</h3>
+          <p>Show a card with image + description for every saved link. Better than a text-only title.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pricing — sitetrace API</title>
+  <meta name="description" content="Free tier is 100 calls/day, no signup. Paid plans from $9/mo for 1,000 calls/day. Cancel any time. Pay via PayPal." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/pricing/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/" class="active">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <h1>Honest pricing.</h1>
+      <p class="lede">Free tier is genuinely free, not a crippled demo. Paid plans are month-to-month, no contract, no surprise overage charges. Cancel from your dashboard.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <div class="price-grid">
+        <div class="price-card">
+          <div class="name">Free</div>
+          <p class="price">$0<small> / month</small></p>
+          <ul>
+            <li>100 calls/day, no signup</li>
+            <li>1,000 calls/day with email signup</li>
+            <li>All 6 APIs</li>
+            <li>Community support</li>
+          </ul>
+          <a href="/signup/" class="btn">Get a free key</a>
+        </div>
+
+        <div class="price-card featured">
+          <div class="name">Hobby <span class="badge">most popular</span></div>
+          <p class="price">$9<small> / month</small></p>
+          <ul>
+            <li>1,000 calls/day</li>
+            <li>All 6 APIs</li>
+            <li>Email support</li>
+            <li>Per-endpoint usage stats</li>
+          </ul>
+          <a href="#" onclick="checkout('hobby'); return false;" class="btn btn-primary">Subscribe</a>
+        </div>
+
+        <div class="price-card">
+          <div class="name">Pro</div>
+          <p class="price">$49<small> / month</small></p>
+          <ul>
+            <li>30,000 calls/day</li>
+            <li>All 6 APIs</li>
+            <li>Priority email support</li>
+            <li>Status page + changelog feed</li>
+          </ul>
+          <a href="#" onclick="checkout('pro'); return false;" class="btn">Subscribe</a>
+        </div>
+
+        <div class="price-card">
+          <div class="name">Volume</div>
+          <p class="price">$199<small> / month</small></p>
+          <ul>
+            <li>200,000 calls/day</li>
+            <li>All 6 APIs</li>
+            <li>Dedicated support channel</li>
+            <li>99.9% uptime SLA</li>
+          </ul>
+          <a href="#" onclick="checkout('volume'); return false;" class="btn">Subscribe</a>
+        </div>
+      </div>
+      <p class="muted center" style="margin-top: 24px; font-size: 14px;">
+        Need more? Hit 200k/day and still want more — write to <code>billing@sitetrace.it.com</code> for a custom volume deal.
+      </p>
+    </section>
+
+    <section>
+      <h2>What you get on every plan</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>All 6 APIs, one key</h3>
+          <p>One subscription, six endpoints. Screenshot, IP reputation, email, HTTP headers, URL preview, SSL. No bundling, no upsells.</p>
+        </div>
+        <div class="api-card">
+          <h3>No tracking, no analytics</h3>
+          <p>We don't add tracking pixels to your screenshots, don't fingerprint URLs, and don't sell usage data. The Privacy page is a real page, not a legal maze.</p>
+        </div>
+        <div class="api-card">
+          <h3>Paddle billing</h3>
+          <p>We use Paddle (Merchant of Record) so you get a clean receipt, proper sales tax, and PayPal or card. Cancel from your dashboard or the receipt link.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>FAQ</h2>
+      <details class="faq" open>
+        <summary>What's the difference between the no-signup free tier and the email-signup free tier?</summary>
+        <p>Same APIs, different rate limits. No-signup is 100 calls/day per IP. Email signup is 1,000 calls/day per key (and you can use the same key from multiple IPs / servers). The no-signup tier exists because "try before you buy" shouldn't require a card or an email.</p>
+      </details>
+      <details class="faq">
+        <summary>Do you charge overage fees?</summary>
+        <p>No. If you hit the daily limit, the API returns HTTP 429 with a clear message. We won't surprise-charge you. Upgrade from the dashboard if you need more.</p>
+      </details>
+      <details class="faq">
+        <summary>Can I switch plans?</summary>
+        <p>Yes, instantly. Upgrade takes effect immediately; downgrade takes effect at the end of the current billing period. Paddle handles the proration.</p>
+      </details>
+      <details class="faq">
+        <summary>Do you offer annual billing?</summary>
+        <p>Not yet. We're keeping pricing simple while we learn what people actually need. If you want a 10% discount for annual, write to <code>billing@sitetrace.it.com</code>.</p>
+      </details>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/status/">Status</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Paddle checkout integration
+    // Paddle.js loaded from the Paddle CDN; the price IDs are set in
+    // the Paddle dashboard and matched in functions/api/paddle-webhook.js
+    async function checkout(plan) {
+      const email = prompt('Enter your email to check out:');
+      if (!email) return;
+      // Open Paddle.js overlay with the right price + passthrough
+      // (passthrough carries the email + plan to the webhook so we
+      // can match the subscription back to the user).
+      try {
+        if (window.Paddle) {
+          const priceId = {
+            hobby:  window.PADDLE_PRICE_HOBBY  || 'pri_hobby_placeholder',
+            pro:    window.PADDLE_PRICE_PRO    || 'pri_pro_placeholder',
+            volume: window.PADDLE_PRICE_VOLUME || 'pri_volume_placeholder',
+          }[plan];
+          window.Paddle.Checkout.open({
+            price: priceId,
+            quantity: 1,
+            passthrough: JSON.stringify({ email: email, plan: plan }),
+            successUrl: 'https://api.sitetrace.it.com/dashboard?welcome=1',
+          });
+        } else {
+          alert('Checkout is loading — refresh the page in a moment. If this keeps happening, the Paddle price IDs are not yet configured.');
+        }
+      } catch (e) {
+        alert('Checkout error: ' + e.message);
+      }
+    }
+  </script>
+  <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+  <script>
+    if (window.Paddle) {
+      window.Paddle.Environment.set('production');
+    }
+  </script>
+</body>
+</html>

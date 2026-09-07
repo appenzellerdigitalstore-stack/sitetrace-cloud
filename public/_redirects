@@ -1,0 +1,27 @@
+# sitetrace-api redirects
+# Host-level redirects (www → apex) are configured as a Cloudflare
+# Page Rule on the zone, not in this file. _redirects is path-only.
+
+# /api/* explicit aliases (so a typo doesn't 404)
+/api/screenshot     /api/shot       301
+/api/screenshot.jpg /api/shot       301
+/api/reputation     /api/ip         301
+/api/dnsbl          /api/ip         301
+/api/email-check    /api/email      301
+/api/og             /api/preview    301
+/api/opengraph      /api/preview    301
+/api/ct             /api/certs      301
+/api/ssl            /api/certs      301
+/api/dashboard      /dashboard      301
+/api/console        /dashboard      301
+
+# Trailing-slash canonicalization
+/shot      /shot/      301
+/ip        /ip/        301
+/email     /email/     301
+/headers   /headers/   301
+/preview   /preview/   301
+/certs     /certs/     301
+/docs      /docs/      301
+/pricing   /pricing/   301
+/signup    /signup/    301

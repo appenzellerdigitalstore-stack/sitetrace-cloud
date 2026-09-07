@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Email Deliverability API — SPF, DKIM, DMARC, MX, BIMI | sitetrace API</title>
+  <meta name="description" content="Check the email-authentication posture of any domain. Returns SPF, DKIM, DMARC, MX, BIMI plus a 0-100 deliverability score. Free tier: 100 calls/day, no signup." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/email/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/" class="active">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <span class="badge">/api/email</span>
+      <h1>Will Gmail deliver your email?</h1>
+      <p class="lede">SPF, DKIM, DMARC, MX, BIMI — every DNS record that affects inbox placement, in one call. With a 0-100 score so your dashboard can show it without parsing 4 records.</p>
+    </section>
+
+    <section>
+      <h2>Try it</h2>
+      <pre><code>curl "https://api.sitetrace.it.com/api/email?domain=github.com" | jq</code></pre>
+      <pre><code>{
+  "domain": "github.com",
+  "score": 95,
+  "risk": "low",
+  "issues": [],
+  "checks": [
+    { "id": "spf",           "pass": true,  "value": "v=spf1",       "message": "SPF record found." },
+    { "id": "spf_strict",    "pass": true,  "value": "-all",         "message": "SPF ends with -all (strict)." },
+    { "id": "spf_lookups",   "pass": true,  "value": 4,              "message": "SPF uses 4 mechanisms (within RFC limit)." },
+    { "id": "dkim",          "pass": true,  "value": "github.com",   "message": "DKIM found at google._domainkey.github.com." },
+    { "id": "dmarc",         "pass": true,  "value": "v=DMARC1",      "message": "DMARC record found." },
+    { "id": "dmarc_policy",  "pass": true,  "value": "reject",        "message": "DMARC policy is \"reject\" (strictest)." },
+    { "id": "mx",            "pass": true,  "value": "1 host(s)",     "message": "MX records found (1)." }
+  ],
+  "records": { "spf": {...}, "dkim": {...}, "dmarc": {...}, "mx": {...}, "bimi": {...} }
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>How the score is computed</h2>
+      <table>
+        <tr><th>Issue</th><th>Penalty</th></tr>
+        <tr><td>No SPF record at the apex</td><td>−30</td></tr>
+        <tr><td>SPF ends with anything other than <code>-all</code></td><td>−15</td></tr>
+        <tr><td>SPF uses more than 10 DNS lookups (RFC violation)</td><td>−10</td></tr>
+        <tr><td>No DKIM on any common selector</td><td>−25</td></tr>
+        <tr><td>No DMARC at <code>_dmarc</code></td><td>−25</td></tr>
+        <tr><td>DMARC policy is <code>none</code> (monitoring only)</td><td>−15</td></tr>
+        <tr><td>No MX records (can't receive mail)</td><td>−15</td></tr>
+      </table>
+      <p>Risk band: ≥80 low, ≥50 medium, &lt;50 high.</p>
+    </section>
+
+    <section>
+      <h2>About DKIM</h2>
+      <p>DKIM uses a <em>selector</em> — a label before <code>._domainkey.</code>. We probe 20 common selectors (default, google, k1, s1, s2, selector1, mail, dkim, mx, mandrill, mailjet, sendgrid, mailgun, postmark, smtp, email, sig1, sig2, cm). If your domain uses a custom selector, you'll see "DKIM not found" even if DKIM is actually configured. To find an unknown selector, look at your mail server's config or a sent message's raw headers.</p>
+    </section>
+
+    <section>
+      <h2>Use it to</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Monitor customer domains</h3>
+          <p>If you run an ESP, SaaS, or transactional-mail product, score every sending domain daily. Alert the account owner if their score drops.</p>
+        </div>
+        <div class="api-card">
+          <h3>Pre-flight new domain setups</h3>
+          <p>When a customer adds a new sending domain, run the check after they save it. Tell them what's missing before they send their first campaign.</p>
+        </div>
+        <div class="api-card">
+          <h3>Brand-protection audits</h3>
+          <p>Check that your own domains stay locked down. A misconfigured SPF (or no DMARC) means anyone can spoof you.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

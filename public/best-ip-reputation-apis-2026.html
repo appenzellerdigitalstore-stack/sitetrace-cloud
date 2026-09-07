@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>5 best IP reputation APIs in 2026 | sitetrace API</title>
+  <meta name="description" content="The IP reputation APIs worth using in 2026. From free DNSBL wrappers to enterprise threat-intel platforms — when to use which." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/best-ip-reputation-apis-2026/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>5 best IP reputation APIs in 2026</h1>
+      <p class="lede">A practical roundup. We focus on APIs that answer "should I let this IP sign up / post / buy" with a clear yes/no and a reason.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>1. sitetrace — best for SaaS signup forms</h2>
+      <p>One call: 7 DNSBLs (Spamhaus ZEN, Spamcop, Barracuda, CBL, SORBS, UCEPROTECT L1, PSBL) + ASN + geo + proxy/hosting/mobile flags. Composite 0-100 score, low/medium/high risk. 100 free calls/day, no signup.</p>
+      <p><strong>Best for:</strong> signup forms, comment systems, login attempt scoring. <a href="/ip/">Try it</a> · <a href="/vs-ipinfo/">vs IPinfo</a></p>
+
+      <h2 style="margin-top: 40px;">2. IPQualityScore (IPQS) — the enterprise pick</h2>
+      <p>Industry standard for fraud detection. Has all the basics plus device fingerprinting, email verification, phone validation, transaction scoring. Free tier is 5,000 lookups/mo. Paid from $37/mo for 50k.</p>
+      <p><strong>Best for:</strong> e-commerce fraud, enterprise risk scoring, teams that need the full fraud platform.</p>
+
+      <h2 style="margin-top: 40px;">3. IPinfo — the geo-and-reputation hybrid</h2>
+      <p>Best-in-class geolocation, plus their own privacy/threat feed. Doesn't do DNSBLs directly but has proxy/VPN/TOR detection. Free tier is 50,000 requests/mo. Paid from $49/mo.</p>
+      <p><strong>Best for:</strong> when you need deep geo + a reputation signal in one call. <a href="/vs-ipinfo/">Comparison with sitetrace</a></p>
+
+      <h2 style="margin-top: 40px;">4. Spamhaus — the source itself</h2>
+      <p>The organization that maintains most of the public DNSBLs also offers a commercial data feed. More accurate than the public DNSBL queries (real-time updates, fewer false positives), with more list coverage. Free for low-volume use; commercial pricing on request.</p>
+      <p><strong>Best for:</strong> mail server operators, anyone whose false-positive cost is high.</p>
+
+      <h2 style="margin-top: 40px;">5. AbuselPDB — the abuse-contact database</h2>
+      <p>Different angle: maps an IP to the organization responsible for it and their abuse contact. Useful for "I need to report spam from this IP". Free API, by URLhaus/abuse.ch.</p>
+      <p><strong>Best for:</strong> security teams doing incident response, not for real-time signup decisions.</p>
+    </section>
+
+    <section>
+      <h2>When to use which</h2>
+      <table>
+        <thead><tr><th>Use case</th><th>Pick</th></tr></thead>
+        <tbody>
+          <tr><td>Block fake signups on a SaaS</td><td>sitetrace, IPQS</td></tr>
+          <tr><td>E-commerce fraud scoring</td><td>IPQS (their model is tuned for this)</td></tr>
+          <tr><td>"Where is this user from" + reputation</td><td>IPinfo</td></tr>
+          <tr><td>Mail server, low false-positive tolerance</td><td>Spamhaus Data Feed</td></tr>
+          <tr><td>Abuse / incident response</td><td>AbuseIPDB</td></tr>
+          <tr><td>Cheapest possible: hobby projects</td><td>sitetrace (free tier, no card)</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/ip/">IP API</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to check if your email will land in spam (5 checks) | sitetrace API</title>
+  <meta name="description" content="Five practical checks to know if your email will land in the inbox or the spam folder. Each one runs in 30 seconds, no signup required for the first four." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/how-to-check-email-deliverability/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>How to check if your email will land in spam</h1>
+      <p class="lede">Five checks. Each runs in 30 seconds. The first four don't require any signup or account.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>1. SPF — does the domain authorize your mail server?</h2>
+      <p>SPF is a TXT record at the apex of your domain (e.g. <code>example.com</code>). It lists which IP addresses and servers are allowed to send email <em>as</em> that domain. If you're using Google Workspace, your SPF record looks like <code>v=spf1 include:_spf.google.com ~all</code>.</p>
+      <p>Check it:</p>
+      <pre><code>dig TXT example.com</code></pre>
+      <p>Or just paste your domain into <a href="/email/">our email API</a> and look at the SPF section.</p>
+      <p><strong>What's a good result:</strong> exactly one <code>v=spf1</code> record, ending in <code>-all</code> (strict), with fewer than 10 DNS lookups. (More than 10 is an RFC violation — some receivers will reject.)</p>
+    </section>
+
+    <section>
+      <h2>2. DKIM — does your mail get a signature?</h2>
+      <p>DKIM adds a cryptographic signature to every outgoing email. Receiving servers verify the signature against a public key stored in DNS. If the signature doesn't match, the email is suspect.</p>
+      <p>The public key is at <code>selector._domainkey.example.com</code>, where <code>selector</code> is something your ESP chose (often <code>default</code>, <code>google</code>, <code>k1</code>, etc.).</p>
+      <p>Check it:</p>
+      <pre><code>dig TXT default._domainkey.example.com</code></pre>
+      <p>You're looking for a record that starts with <code>v=DKIM1</code>.</p>
+      <p><strong>What's a good result:</strong> a valid <code>v=DKIM1</code> record on at least one selector. If you use a custom selector that we don't probe, we won't find it — check with your ESP for the exact selector.</p>
+    </section>
+
+    <section>
+      <h2>3. DMARC — does the domain tell receivers to enforce?</h2>
+      <p>DMARC ties SPF and DKIM together. It's a TXT record at <code>_dmarc.example.com</code> that says: "if an email claims to be from me but fails SPF or DKIM, please reject it".</p>
+      <p>Check it:</p>
+      <pre><code>dig TXT _dmarc.example.com</code></pre>
+      <p>You're looking for <code>v=DMARC1</code> and a <code>p=</code> (policy) tag. The policy is one of:</p>
+      <ul>
+        <li><code>p=none</code> — "monitor only, do nothing". Useless for protection. Required as a starting point, but not where you want to stay.</li>
+        <li><code>p=quarantine</code> — "send failures to spam". A real step up.</li>
+        <li><code>p=reject</code> — "reject failures outright". The strictest. What you want once you're confident nothing legitimate will fail.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>4. MX — does the domain have a mail server at all?</h2>
+      <p>MX records tell other servers where to deliver email addressed to your domain. If you don't have any, you can't receive mail. (You can still send through a third-party ESP.)</p>
+      <pre><code>dig MX example.com</code></pre>
+      <p><strong>What's a good result:</strong> one or more MX records pointing to a working mail server. If you use Google Workspace, you should see <code>aspmx.l.google.com</code>.</p>
+    </section>
+
+    <section>
+      <h2>5. Blacklists — is your sending IP on a blocklist?</h2>
+      <p>If your IP is on Spamhaus, Barracuda, or any of the other public blocklists, your email will be rejected or sent to spam by every server that checks those lists. You can check at <a href="/ip/">/ip</a> by passing your sending server's IP.</p>
+      <p><strong>What's a good result:</strong> "low" risk, 0 of 7 DNSBLs listing the IP.</p>
+      <p><strong>What to do if you're listed:</strong> Most blocklists have a "delist" form. The trick is figuring out <em>why</em> you were listed — usually a misconfigured server, a compromised account, or a customer who marked your email as spam.</p>
+    </section>
+
+    <section>
+      <h2>One call, all five</h2>
+      <p>If you don't want to remember which DNS server to query, our <a href="/email/">email API</a> does all five checks in one call and returns a 0-100 score:</p>
+      <pre><code>curl "https://api.sitetrace.it.com/api/email?domain=example.com" | jq .score</code></pre>
+      <p>Score ≥80, low risk: you're fine. Score 50-80, medium: there are gaps. Score &lt;50, high: something is broken.</p>
+      <p style="margin-top: 24px;"><a href="/signup/" class="btn btn-primary">Get a free API key</a> · <a href="/email/" class="btn">Read the email API docs</a></p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/email/">Email API</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

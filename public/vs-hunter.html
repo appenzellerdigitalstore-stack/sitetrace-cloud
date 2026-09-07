@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hunter.io vs sitetrace — email verification comparison (2026) | sitetrace API</title>
+  <meta name="description" content="Hunter and sitetrace both check email domains for deliverability. Here's how they differ on what they check, price, and the use cases each is good for." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/vs-hunter/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>Hunter.io vs sitetrace for email verification</h1>
+      <p class="lede">They do very different things and we should start by saying so. Hunter finds email addresses and verifies individual mailboxes. We check the <em>domain's</em> authentication posture (SPF/DKIM/DMARC). Sometimes you need both.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>Different products, overlapping use cases</h2>
+      <table>
+        <thead><tr><th>Question</th><th>Hunter</th><th>sitetrace</th></tr></thead>
+        <tbody>
+          <tr><td>"What email addresses exist at example.com?"</td><td>✓ Email Finder</td><td>—</td></tr>
+          <tr><td>"Is <em>this</em> email address deliverable?"</td><td>✓ Email Verifier (per-address SMTP check)</td><td>—</td></tr>
+          <tr><td>"Does example.com have SPF/DKIM/DMARC set up?"</td><td>— (out of scope)</td><td>✓</td></tr>
+          <tr><td>"Will Gmail send my email to spam because of missing DMARC?"</td><td>—</td><td>✓</td></tr>
+          <tr><td>"Find all the people who work at company X"</td><td>✓</td><td>—</td></tr>
+          <tr><td>Free tier</td><td>25 searches/mo + 50 verifications</td><td>100 calls/day (no signup), 1k/day (signup)</td></tr>
+          <tr><td>Cheapest paid</td><td>$49/mo (1,000 verifications + 5,000 searches)</td><td>$9/mo (1,000 calls/day)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Where sitetrace wins</h2>
+      <h3>"My customers' emails are landing in spam"</h3>
+      <p>This is the deliverability problem. A SaaS or ESP wants to monitor every sending domain. SPF/DKIM/DMARC misconfigurations are the #1 cause. Hunter doesn't check this. We do, in one call.</p>
+      <h3>Price at scale for monitoring</h3>
+      <p>If you're monitoring 10,000 customer domains, calling Hunter doesn't make sense — they're not built for that. We are. $49/mo gets you 30k calls/day; that's plenty of headroom for daily monitoring of tens of thousands of domains.</p>
+      <h3>Self-explanatory score</h3>
+      <p>Our 0-100 score + low/medium/high risk band is something you can put on a dashboard without parsing four separate records. Hunter's response is structured for "is this address valid" — a different question.</p>
+    </section>
+
+    <section>
+      <h2>Where Hunter wins</h2>
+      <h3>Email discovery</h3>
+      <p>If your problem is "I need to find the right person to email at company X", Hunter is the answer. We don't do this.</p>
+      <h3>Per-address verification</h3>
+      <p>If your problem is "this specific email address (alex@x.com) — is the mailbox real?", Hunter does an SMTP check. We don't. We can tell you whether the <em>domain</em> is set up to receive email, but not whether a specific mailbox exists.</p>
+      <h3>Tenure + integrations</h3>
+      <p>Hunter has been around since 2015. They have native integrations with every major CRM. We're new.</p>
+    </section>
+
+    <section>
+      <h2>Which should you use</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Use sitetrace if…</h3>
+          <p>You send transactional or marketing email and you need to monitor your <em>sending domain</em>'s authentication posture, or your customers' domains if you're an ESP.</p>
+        </div>
+        <div class="api-card">
+          <h3>Use Hunter if…</h3>
+          <p>You need to find or verify specific email addresses — outbound sales, lead gen, list cleaning.</p>
+        </div>
+        <div class="api-card">
+          <h3>Use both</h3>
+          <p>Sales team uses Hunter to find and verify addresses. Deliverability team uses sitetrace to monitor the sending domain. Different tools, different problems.</p>
+        </div>
+      </div>
+      <p style="margin-top: 24px;"><a href="/email/" class="btn btn-primary">Try the sitetrace email API</a></p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/email/">Email API</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

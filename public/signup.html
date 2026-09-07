@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Get a free API key — sitetrace API</title>
+  <meta name="description" content="Free sitetrace API key in 10 seconds. 1,000 calls/day on all 6 APIs. No credit card." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/signup/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <h1>Get a free API key.</h1>
+      <p class="lede">1,000 calls/day, all 6 APIs, no credit card. We send nothing to your inbox except an account-recovery link (which you only need if you lose your key).</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <div style="max-width: 480px; margin: 0 auto;">
+        <form id="signup-form">
+          <div class="form-row">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email" />
+            <p class="help">We use this only to recover your key if you lose it. No marketing.</p>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Get my API key</button>
+        </form>
+
+        <div id="result" style="margin-top: 24px; display: none;">
+          <div class="api-card" style="border-color: var(--good);">
+            <h3 style="color: var(--good);">✓ Your key is ready</h3>
+            <p class="muted" style="margin: 8px 0;">Save this somewhere safe — we don't store it in plain text. If you lose it, re-submit this form and we'll show it again.</p>
+            <pre style="margin: 14px 0;"><code id="key-out"></code></pre>
+            <p style="font-size: 14px; margin: 0;">
+              <a id="dash-link" href="#" class="btn btn-primary">Open dashboard →</a>
+              <a href="/docs/" class="btn">Read the docs</a>
+            </p>
+          </div>
+        </div>
+
+        <div id="error" style="margin-top: 24px; display: none;">
+          <div class="api-card" style="border-color: var(--bad);">
+            <h3 style="color: var(--bad);">Couldn't sign up</h3>
+            <p class="muted" id="error-msg" style="margin: 8px 0;"></p>
+          </div>
+        </div>
+
+        <p class="muted center" style="margin-top: 32px; font-size: 14px;">
+          Don't want to sign up? <a href="/shot/">Try the no-signup free tier</a> instead — 100 calls/day per IP.
+        </p>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const form = document.getElementById('signup-form');
+    const result = document.getElementById('result');
+    const err = document.getElementById('error');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      result.style.display = 'none';
+      err.style.display = 'none';
+      const email = document.getElementById('email').value.trim();
+      if (!email) return;
+      const btn = form.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Creating key…';
+      try {
+        const r = await fetch('/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await r.json();
+        if (!r.ok) {
+          err.style.display = 'block';
+          document.getElementById('error-msg').textContent = data.message || ('HTTP ' + r.status);
+        } else {
+          result.style.display = 'block';
+          document.getElementById('key-out').textContent = data.user.api_key;
+          const dash = document.getElementById('dash-link');
+          dash.href = data.user.dashboard_url;
+          form.style.display = 'none';
+        }
+      } catch (e) {
+        err.style.display = 'block';
+        document.getElementById('error-msg').textContent = e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Get my API key';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+# =====================================================================
+# Cloudflare Pages configuration for sitetrace-api
+# Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+#
+# Account: 77fe51d9a2d7003d0c9917a3f7d6dcb6
+# Project name: sitetrace-api
+# GitHub repo: appenzellerdigitalstore-stack/sitetrace-cloud
+# Public URL: https://api.sitetrace.it.com (after DNS at Namecheap)
+# =====================================================================
+name = "sitetrace-api"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "."
+
+# No build step — site is plain static files + Functions. Cloudflare
+# Pages serves them as-is.
+
+# ---------------------------------------------------------------------
+# D1 database — users, API keys, usage, rate-limits
+# IMPORTANT: this is the sitetrace account (77fe51d9a2d7003d0c9917a3f7d6dcb6).
+# Create with:  wrangler d1 create sitetrace-api
+# The default CF token only has KV + Pages scope; D1 needs to be added
+# in the CF dashboard (User API Tokens → edit token → Account → D1:Edit).
+# Until that's done, the API will return 503 from /api/* and the
+# static site will still serve.
+# ---------------------------------------------------------------------
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "sitetrace-api"
+# database_id = "REPLACE_AFTER_D1_CREATE"
+
+# ---------------------------------------------------------------------
+# KV namespace — KV is used for the SSL/CT 24h cache.
+# Created: 2026-09-07  id: 34a24f07e7e140948b4491df07f0d62d
+# ---------------------------------------------------------------------
+[[kv_namespaces]]
+binding = "RATELIMIT"
+id = "34a24f07e7e140948b4491df07f0d62d"
+
+# ---------------------------------------------------------------------
+# Browser Rendering — headless Chrome for the screenshot API
+# Enable in CF dashboard: Workers & Pages → Settings → Browser Rendering
+# Then uncomment the [[browser]] block below.
+# Requires Workers Paid plan ($5/mo, includes 500 min browser time).
+# ---------------------------------------------------------------------
+# [[browser]]
+# binding = "BROWSER"

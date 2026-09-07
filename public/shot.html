@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Screenshot API — URL to PNG, $0.03 per shot | sitetrace API</title>
+  <meta name="description" content="Free + paid URL-to-PNG screenshot API. Real headless Chrome, desktop/mobile/tablet viewports, 5-min edge cache. Free tier: 100 calls/day, no signup." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://api.sitetrace.it.com/shot/" />
+  <meta property="og:title" content="Screenshot API — URL to PNG | sitetrace API" />
+  <meta property="og:description" content="Free + paid URL-to-PNG screenshot API. Real headless Chrome, all viewports, 5-min edge cache." />
+  <meta property="og:url" content="https://api.sitetrace.it.com/shot/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/" class="active">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <span class="badge">/api/shot</span>
+      <h1>Screenshot any URL to PNG.</h1>
+      <p class="lede">Real headless Chrome. Three device presets. 5-minute edge cache so popular URLs cost you nothing. Free tier is 100 calls/day, no signup.</p>
+      <div class="cta-row">
+        <a href="/signup/" class="btn btn-primary">Get a free API key</a>
+        <a href="#try" class="btn">Try it below ↓</a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Try it now</h2>
+      <p class="lede">No signup. Just paste a URL and click.</p>
+      <div class="quick-curl" id="try">
+        <pre><code>curl "https://api.sitetrace.it.com/api/shot?url=https://example.com&width=1280&height=720" --output shot.png</code></pre>
+      </div>
+      <div style="text-align: center; margin-top: 24px;">
+        <img id="demo" alt="Screenshot demo" style="max-width: 100%; border: 1px solid var(--border); border-radius: 8px;" />
+      </div>
+    </section>
+
+    <section>
+      <h2>All the options</h2>
+      <table>
+        <thead><tr><th>Param</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td><code>url</code> <span class="badge">required</span></td><td>—</td><td>Full http(s) URL to screenshot. Protocol is added if missing.</td></tr>
+          <tr><td><code>device</code></td><td>desktop</td><td><code>desktop</code>, <code>mobile</code>, or <code>tablet</code>. Sets viewport + user-agent.</td></tr>
+          <tr><td><code>width</code></td><td>1280</td><td>Viewport width in px (clamped 100–3840).</td></tr>
+          <tr><td><code>height</code></td><td>720</td><td>Viewport height in px (clamped 100–2160).</td></tr>
+          <tr><td><code>full</code></td><td>false</td><td>Capture the full scrollable page, not just the viewport.</td></tr>
+          <tr><td><code>wait</code></td><td>0</td><td>Extra ms to wait after page load (max 8000). Use for SPAs that hydrate.</td></tr>
+          <tr><td><code>dark</code></td><td>false</td><td>Emulate <code>prefers-color-scheme: dark</code>.</td></tr>
+          <tr><td><code>format</code></td><td>png</td><td><code>png</code> or <code>jpeg</code>. JPEG is smaller; PNG is sharper.</td></tr>
+          <tr><td><code>quality</code></td><td>80</td><td>JPEG quality (30–100). Ignored for PNG.</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Code, in your language</h2>
+      <div class="code-tabs">
+        <div class="tabs">
+          <button class="tab active" data-tab="curl">curl</button>
+          <button class="tab" data-tab="js">JavaScript</button>
+          <button class="tab" data-tab="py">Python</button>
+          <button class="tab" data-tab="go">Go</button>
+        </div>
+        <pre class="active" data-tab="curl"><code># Free, no key
+curl "https://api.sitetrace.it.com/api/shot?url=https://example.com" --output shot.png
+
+# With API key (higher quota, mobile viewport, full page)
+curl "https://api.sitetrace.it.com/api/shot?url=https://github.com&device=mobile&full=true" \
+  -H "Authorization: Bearer stk_your_key_here" \
+  --output github-mobile.png</code></pre>
+        <pre data-tab="js"><code>// Node / browser
+const url = 'https://api.sitetrace.it.com/api/shot?url=' + encodeURIComponent('https://example.com');
+const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + API_KEY } });
+const blob = await res.blob();
+const img = new Image();
+img.src = URL.createObjectURL(blob);
+document.body.appendChild(img);</code></pre>
+        <pre data-tab="py"><code>import requests
+
+r = requests.get(
+    'https://api.sitetrace.it.com/api/shot',
+    params={'url': 'https://example.com', 'width': 1280, 'height': 720},
+    headers={'Authorization': f'Bearer {API_KEY}'},
+)
+with open('shot.png', 'wb') as f:
+    f.write(r.content)</code></pre>
+        <pre data-tab="go"><code>package main
+
+import (
+    "io"
+    "net/http"
+    "os"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET", "https://api.sitetrace.it.com/api/shot?url=https://example.com", nil)
+    req.Header.Set("Authorization", "Bearer "+apiKey)
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    out, _ := os.Create("shot.png")
+    defer out.Close()
+    io.Copy(out, resp.Body)
+}</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>When to use this vs the URL Preview API</h2>
+      <p>If you need a single image of the page → use <code>/api/shot</code>. If you need just the Open Graph / Twitter Card metadata (title, description, image URL, favicon) for a link preview, use <a href="/preview/"><code>/api/preview</code></a> — it's faster and doesn't render Chrome. Most apps want both: <code>/api/preview</code> to display a rich link, <code>/api/shot</code> as a fallback for sites without OG tags.</p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/vs-urlbox/">vs urlbox</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Tab switcher
+    document.querySelectorAll('.code-tabs').forEach(block => {
+      const tabs = block.querySelectorAll('.tab');
+      const pres = block.querySelectorAll('pre');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.tab;
+          tabs.forEach(t => t.classList.toggle('active', t === tab));
+          pres.forEach(p => p.classList.toggle('active', p.dataset.tab === target));
+        });
+      });
+    });
+
+    // Load a demo screenshot
+    const demo = document.getElementById('demo');
+    if (demo) demo.src = '/api/shot?url=' + encodeURIComponent('https://example.com') + '&width=1280&height=720';
+  </script>
+</body>
+</html>

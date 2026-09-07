@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HTTP Headers API — security-header scoring | sitetrace API</title>
+  <meta name="description" content="Score the security headers of any URL: HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy. 0-100 + letter grade." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/headers/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/" class="active">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <span class="badge">/api/headers</span>
+      <h1>Grade any URL's security headers.</h1>
+      <p class="lede">8 headers, 0-100 score, A-F grade. Built for compliance dashboards and security audits.</p>
+    </section>
+
+    <section>
+      <h2>Try it</h2>
+      <pre><code>curl "https://api.sitetrace.it.com/api/headers?url=https://github.com" | jq</code></pre>
+      <pre><code>{
+  "url": "https://github.com",
+  "final_url": "https://github.com/",
+  "status": 200,
+  "score": 90,
+  "grade": "A",
+  "checks": [
+    { "id": "hsts",        "header": "strict-transport-security", "present": true,  "pass": true,  "weight": 15, "value": "max-age=31536000; includeSubdomains; preload" },
+    { "id": "csp",         "header": "content-security-policy",   "present": true,  "pass": true,  "weight": 20, "value": "default-src 'none'; ..." },
+    { "id": "x_frame",     "header": "x-frame-options",           "present": false, "pass": false, "weight": 10, "value": null },
+    /* ... */
+  ],
+  "all_headers": { /* full response headers */ }
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>What's checked</h2>
+      <table>
+        <tr><th>Header</th><th>Weight</th><th>What we look for</th></tr>
+        <tr><td><code>strict-transport-security</code></td><td>15</td><td><code>max-age=</code> with at least 8 digits (≈1 year)</td></tr>
+        <tr><td><code>content-security-policy</code></td><td>20</td><td>Present and not empty</td></tr>
+        <tr><td><code>x-frame-options</code></td><td>10</td><td><code>DENY</code> or <code>SAMEORIGIN</code></td></tr>
+        <tr><td><code>x-content-type-options</code></td><td>10</td><td><code>nosniff</code></td></tr>
+        <tr><td><code>referrer-policy</code></td><td>5</td><td>A non-leaky value (<code>strict-origin</code>, <code>no-referrer</code>, etc.)</td></tr>
+        <tr><td><code>permissions-policy</code></td><td>5</td><td>Present and not empty</td></tr>
+        <tr><td><code>x-xss-protection</code></td><td>0</td><td>Deprecated; OK if absent</td></tr>
+        <tr><td><code>server</code></td><td>0</td><td>Info only — leaks server version</td></tr>
+      </table>
+      <p>Grading: 90+ A, 80+ B, 60+ C, 40+ D, below F.</p>
+    </section>
+
+    <section>
+      <h2>Use it to</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Compliance dashboards</h3>
+          <p>Score every domain in your portfolio weekly. Alert owners whose grade drops below B.</p>
+        </div>
+        <div class="api-card">
+          <h3>Pen-test reports</h3>
+          <p>Drop the per-check array into a report. Each row has the header, the value, the expected behavior, and a pass/fail.</p>
+        </div>
+        <div class="api-card">
+          <h3>CI checks</h3>
+          <p>Call after every deploy. Fail the build if the score drops below your floor.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IP Reputation API — 7 DNSBLs + ASN + geo | sitetrace API</title>
+  <meta name="description" content="Check if an IPv4 is on 7 public DNSBLs (Spamhaus, Spamcop, Barracuda, CBL, SORBS, UCEPROTECT, PSBL). Includes ASN, geo, proxy/hosting/mobile detection and a 0-100 reputation score. Free tier: 100 calls/day, no signup." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/ip/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/" class="active">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <span class="badge">/api/ip</span>
+      <h1>IP reputation in one call.</h1>
+      <p class="lede">7 DNSBLs, geolocation, ASN, proxy/hosting/mobile detection, and a 0-100 risk score. Drop it into your signup form, your comment system, or your rate-limiter.</p>
+    </section>
+
+    <section>
+      <h2>Try it</h2>
+      <pre><code>curl "https://api.sitetrace.it.com/api/ip?ip=1.2.3.4" | jq</code></pre>
+      <pre><code>{
+  "ip": "1.2.3.4",
+  "score": 75,
+  "risk": "medium",
+  "dnsbl": {
+    "checked": 6,
+    "listed": 1,
+    "total": 7,
+    "results": [
+      { "id": "spamhaus_zen", "label": "Spamhaus ZEN", "listed": false },
+      { "id": "spamcop",      "label": "Spamcop",      "listed": true,  "codes": ["2"] }
+      /* ... 5 more */
+    ]
+  },
+  "geo": { "country": "US", "city": "Mountain View", "isp": "Google", "as": "AS15169 Google LLC", "proxy": false, "hosting": true, "mobile": false }
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>How the score is computed</h2>
+      <p>Start at 100. For each DNSBL that lists the IP, subtract 10. Then:</p>
+      <table>
+        <tr><th>Signal</th><th>Adjustment</th></tr>
+        <tr><td>DNSBL hit</td><td>−10 each</td></tr>
+        <tr><td>Flagged as proxy (TOR, VPN, public proxy)</td><td>−15</td></tr>
+        <tr><td>Flagged as hosting (data-center, not residential)</td><td>−5</td></tr>
+        <tr><td>Flagged as mobile carrier</td><td>+5</td></tr>
+      </table>
+      <p>Risk band: ≥80 low, ≥50 medium, &lt;50 high.</p>
+    </section>
+
+    <section>
+      <h2>What's in the response</h2>
+      <p>Per DNSBL: which list, whether the IP is listed, and the reason code (different 127.0.0.x answers mean different things — 2 = spam source, 4 = open proxy, 5 = trojan). Geo includes country, city, ZIP, lat/lon, ISP, organization, ASN, and the proxy/hosting/mobile flags. Score and risk are 0-100 + low/medium/high.</p>
+    </section>
+
+    <section>
+      <h2>Use it to</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Block fake signups</h3>
+          <p>Call on every new account creation. If <code>risk === 'high'</code>, show a CAPTCHA. If <code>'medium'</code>, require email verification.</p>
+        </div>
+        <div class="api-card">
+          <h3>Pre-screen comments</h3>
+          <p>Same idea for blog comments, forum posts, anything user-submitted. Cheap enough to call on every submission.</p>
+        </div>
+        <div class="api-card">
+          <h3>Score login attempts</h3>
+          <p>Step-up auth when an IP is high-risk. SMS-code instead of password, or just a longer password requirement.</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Source of truth</h2>
+      <p>DNS lookups go through Cloudflare's DNS-over-HTTPS. Geo comes from ip-api.com (free tier, HTTP). The list of DNSBLs we query is on the docs page — adding/removing them is a one-line edit in <code>functions/api/ip.js</code>.</p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

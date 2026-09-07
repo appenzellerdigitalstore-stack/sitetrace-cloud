@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>sitetrace API — utility APIs for developers</title>
+  <meta name="description" content="Free + paid developer APIs: URL screenshots, IP reputation, email deliverability, HTTP headers, URL preview, SSL certificate transparency. No signup for the free tier." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://api.sitetrace.it.com/" />
+  <meta property="og:title" content="sitetrace API — utility APIs for developers" />
+  <meta property="og:description" content="Free + paid developer APIs: URL screenshots, IP reputation, email deliverability, HTTP headers, URL preview, SSL certificate transparency." />
+  <meta property="og:url" content="https://api.sitetrace.it.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="sitetrace API" />
+  <link rel="stylesheet" href="/styles.css" />
+  <link rel="icon" href="/favicon.ico" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 100px; border-top: none;">
+      <h1>Utility APIs that do one thing well.</h1>
+      <p class="lede">Screenshots, IP reputation, email deliverability, HTTP header scores, URL previews, and SSL certificate lookups. Free tier is 100 calls/day, no signup. Paid from $9/mo.</p>
+      <div class="cta-row">
+        <a href="/shot/" class="btn btn-primary">Try the screenshot API</a>
+        <a href="/pricing/" class="btn">See pricing</a>
+        <a href="/docs/" class="btn btn-ghost">Read the docs →</a>
+      </div>
+      <div class="quick-curl">
+        <pre><code>curl "https://api.sitetrace.it.com/api/shot?url=https://example.com" --output shot.png</code></pre>
+      </div>
+    </section>
+
+    <section>
+      <h2>Six APIs. One auth. No surprises.</h2>
+      <p class="lede">Every endpoint returns JSON (except <code>/api/shot</code>, which returns a PNG). The same key works on all of them. The free tier never asks for a card.</p>
+      <div class="api-grid">
+        <a href="/shot/" class="api-card">
+          <span class="pill">/api/shot</span>
+          <h3>Screenshot API</h3>
+          <p>URL → PNG. Renders with real headless Chrome. Desktop, mobile, tablet viewports. 5-min edge cache.</p>
+        </a>
+        <a href="/ip/" class="api-card">
+          <span class="pill">/api/ip</span>
+          <h3>IP Reputation</h3>
+          <p>7 DNSBLs + ASN + geo + risk score in one call. Catches fake-account IPs before they reach your signup form.</p>
+        </a>
+        <a href="/email/" class="api-card">
+          <span class="pill">/api/email</span>
+          <h3>Email Deliverability</h3>
+          <p>SPF + DKIM + DMARC + MX + BIMI, with a 0–100 score. Catch misconfigs before Gmail marks you as spam.</p>
+        </a>
+        <a href="/headers/" class="api-card">
+          <span class="pill">/api/headers</span>
+          <h3>HTTP Headers</h3>
+          <p>Security-header score for any URL. HSTS, CSP, X-Frame-Options, all the rest. Letter grade A–F.</p>
+        </a>
+        <a href="/preview/" class="api-card">
+          <span class="pill">/api/preview</span>
+          <h3>URL Preview</h3>
+          <p>Open Graph + Twitter Card + favicon + theme color from any URL. For link-in-bio, newsletter tools, chat bots.</p>
+        </a>
+        <a href="/certs/" class="api-card">
+          <span class="pill">/api/certs</span>
+          <h3>SSL / CT Lookup</h3>
+          <p>Every cert ever issued for a domain, in clean JSON. Brand monitoring, subdomain recon, security audits.</p>
+        </a>
+      </div>
+    </section>
+
+    <section>
+      <h2>How it works</h2>
+      <p class="lede">Three ways in, from "just trying it" to "running in production".</p>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>1. Paste a URL</h3>
+          <p>No signup. Hit any endpoint with a query string. 100 calls/day per IP. You get a real response in 200ms–3s.</p>
+        </div>
+        <div class="api-card">
+          <h3>2. Get a free key</h3>
+          <p>Email-only signup at <a href="/signup/">/signup</a>. Bumps you to 1,000 calls/day on the same endpoints.</p>
+        </div>
+        <div class="api-card">
+          <h3>3. Pick a plan</h3>
+          <p>$9/mo (1k/day), $49/mo (30k/day), $199/mo (200k/day). Cancel any time. Pay via PayPal (Paddle).</p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Frequently asked</h2>
+      <details class="faq" open>
+        <summary>Do I need an account to try it?</summary>
+        <p>No. The free tier is fully functional with no signup — just hit any endpoint. If you want 1,000 calls/day (vs 100 per IP), email signup at <a href="/signup/">/signup</a> takes 10 seconds.</p>
+      </details>
+      <details class="faq">
+        <summary>How is this different from bigger services?</summary>
+        <p>It's not a 1:1 replacement for, say, IPQS or Hunter.io — those have a wider feature set. We focus on the five (six, counting certs) most-requested utility APIs, with a generous free tier and a transparent price. We compete on the long tail of use cases where paying $300/mo for a 10x-bigger service doesn't make sense.</p>
+      </details>
+      <details class="faq">
+        <summary>Where does the data come from?</summary>
+        <p>DNSBLs are queried live via Cloudflare DNS-over-HTTPS. Geolocation comes from ip-api.com. Email records come from the domain's authoritative DNS. Screenshots run in Cloudflare's headless Chrome. SSL data comes from crt.sh, cached for 24h.</p>
+      </details>
+      <details class="faq">
+        <summary>Can I cancel any time?</summary>
+        <p>Yes. The plan is month-to-month, no contract. Cancel from the dashboard or via the Paddle receipt email.</p>
+      </details>
+      <details class="faq">
+        <summary>What if I go over my quota?</summary>
+        <p>The API returns HTTP 429 with a JSON body explaining the situation. No surprise overage charges. Upgrade at <a href="/pricing/">/pricing</a> or wait for the daily reset (UTC midnight).</p>
+      </details>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API · <a href="/">sitetrace.it.com</a></div>
+      <div class="links">
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/status/">Status</a>
+        <a href="/changelog/">Changelog</a>
+        <a href="/privacy/">Privacy</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

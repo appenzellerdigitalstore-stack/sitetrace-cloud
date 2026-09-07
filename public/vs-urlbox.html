@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Screenshot API vs Urlbox — honest comparison (2026) | sitetrace API</title>
+  <meta name="description" content="Urlbox and sitetrace both turn URLs into PNGs. Here's how they differ on price, speed, free tier, and the things that don't show up in marketing pages." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/vs-urlbox/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>Screenshot API: sitetrace vs Urlbox</h1>
+      <p class="lede">Both turn a URL into a PNG. Here's an honest comparison on the dimensions that actually matter: price, free tier, speed, and the things neither company puts on the marketing page.</p>
+      <p class="muted" style="font-size: 14px;">Last updated January 2026. We try to keep this accurate, but always check the current pricing on each site.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>At a glance</h2>
+      <table>
+        <thead>
+          <tr><th></th><th>sitetrace</th><th>Urlbox</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Free tier</td><td>100 calls/day, no signup</td><td>None (paid only)</td></tr>
+          <tr><td>Email-signup free tier</td><td>1,000 calls/day</td><td>—</td></tr>
+          <tr><td>Cheapest paid plan</td><td>$9/mo (1,000 calls/day)</td><td>$49/mo (5,000 calls/mo)</td></tr>
+          <tr><td>Cost per 1,000 screenshots</td><td>$0.03 (Pro) — $0.01 (Volume)</td><td>$9.80 (Low) — $1.60 (Pro)</td></tr>
+          <tr><td>Render engine</td><td>Headless Chrome (Cloudflare)</td><td>Headless Chrome (custom)</td></tr>
+          <tr><td>Average render time</td><td>2-3s</td><td>2-4s</td></tr>
+          <tr><td>Custom viewports</td><td>✓ any WxH, clamped 100-3840</td><td>✓ presets + custom</td></tr>
+          <tr><td>Full-page capture</td><td>✓</td><td>✓</td></tr>
+          <tr><td>Dark mode emulation</td><td>✓</td><td>✓</td></tr>
+          <tr><td>PDF rendering</td><td>—</td><td>✓</td></tr>
+          <tr><td>Video recording</td><td>—</td><td>✓ (paid)</td></tr>
+          <tr><td>Bulk / batch API</td><td>— (use direct calls, async them yourself)</td><td>✓</td></tr>
+          <tr><td>Hosted in</td><td>Cloudflare edge (300+ POPs)</td><td>AWS (us-east-1, eu-west-1)</td></tr>
+          <tr><td>Open source</td><td>No</td><td>No</td></tr>
+          <tr><td>Tracks users of the screenshots</td><td>No</td><td>No (per their policy)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Where sitetrace wins</h2>
+      <h3>Price (most of the time)</h3>
+      <p>Urlbox's $49/mo plan is 5,000 screenshots per <em>month</em>. Our $49/mo plan is 30,000 per <em>day</em>. For a project hitting the API hard, the gap is huge. For a project rendering a couple of screenshots an hour for a blog, both are overkill.</p>
+      <h3>Free tier that actually works</h3>
+      <p>Urlbox has no free tier. We give you 100 calls/day with no signup, and 1,000 calls/day with just an email. "Try before you buy" should not require a card.</p>
+      <h3>Edge cache, everywhere</h3>
+      <p>Our Worker runs in 300+ Cloudflare POPs. Urlbox is in two AWS regions. The first request from a new region is slow either way; subsequent requests are usually faster on our end.</p>
+    </section>
+
+    <section>
+      <h2>Where Urlbox wins</h2>
+      <h3>PDF rendering</h3>
+      <p>If you need to render an HTML or URL to a PDF, Urlbox does it. We don't (yet). Same for video recording of a session.</p>
+      <h3>Bulk API</h3>
+      <p>Urlbox has a batch endpoint where you POST 100 URLs and get a webhook when they're done. We don't — you'd call us 100 times yourself and async them with your language's HTTP client. Most people can write this in 20 lines, but it's nicer to have it built in.</p>
+      <h3>Tenure</h3>
+      <p>Urlbox has been around longer. We launched in 2026. If "will this still exist in 5 years" matters for your use case, that's a real point in their column.</p>
+    </section>
+
+    <section>
+      <h2>What neither puts on the marketing page</h2>
+      <h3>Render time isn't the only latency</h3>
+      <p>First-time requests for a domain include DNS resolution, TLS handshake, page load, and the screenshot itself. 2-3s is typical. If you're calling us inside a request handler on your own server, that's 2-3s of user-perceived latency. Render async, save to your own storage, serve from there.</p>
+      <h3>The 5-min edge cache is for the same URL + same params</h3>
+      <p>Change the width, the viewport, the dark mode toggle — that's a new cache key. If you want to capture many variants of a page, we charge for each one.</p>
+      <h3>Some sites block headless Chrome</h3>
+      <p>Cloudflare-protected sites, sites with sophisticated bot detection, sites that require user-agent whitelisting — all may serve a different (or empty) page to us. The screenshot will be of what the bot sees, not what a real user sees.</p>
+    </section>
+
+    <section>
+      <h2>So which one should you use?</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Choose sitetrace if…</h3>
+          <p>You want a free tier, you're cost-sensitive, your use case is "URL → image" (no PDFs, no video), and you want to be on Cloudflare's edge.</p>
+        </div>
+        <div class="api-card">
+          <h3>Choose Urlbox if…</h3>
+          <p>You need PDF rendering, video, or the bulk API out of the box. Or you want a vendor that's been around longer.</p>
+        </div>
+        <div class="api-card">
+          <h3>Try both</h3>
+          <p>Urlbox has a 7-day refund policy. We have a no-signup free tier. Test the same URL on both and pick the one that renders your site correctly.</p>
+        </div>
+      </div>
+      <p style="margin-top: 24px;">
+        <a href="/shot/" class="btn btn-primary">Try the sitetrace screenshot API</a>
+        <a href="/pricing/" class="btn">See pricing</a>
+      </p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/shot/">Screenshot API</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

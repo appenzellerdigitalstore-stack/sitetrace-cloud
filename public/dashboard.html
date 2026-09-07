@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard — sitetrace API</title>
+  <meta name="robots" content="noindex" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/" class="btn">Sign out</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none; text-align: left;">
+      <h1>Your dashboard</h1>
+      <p class="muted">Your API key, plan, and today's usage. Bookmark this page.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>API key</h3>
+          <pre style="margin: 12px 0; font-size: 13px;"><code id="key">stk_loading…</code></pre>
+          <p class="muted" style="font-size: 13px; margin: 0;">
+            <button class="btn" onclick="copyKey()">Copy</button>
+            <span id="copy-msg" class="muted" style="margin-left: 8px;"></span>
+          </p>
+        </div>
+        <div class="api-card">
+          <h3>Plan</h3>
+          <p id="plan" style="font-size: 24px; font-weight: 700; margin: 8px 0;">—</p>
+          <p class="muted" style="font-size: 13px; margin: 0;">
+            <span id="quota">—</span> calls/day ·
+            <a href="/pricing/">Upgrade</a>
+          </p>
+        </div>
+        <div class="api-card">
+          <h3>Status</h3>
+          <p id="status" style="font-size: 24px; font-weight: 700; margin: 8px 0;">—</p>
+          <p class="muted" style="font-size: 13px; margin: 0;">
+            Subscription: <span id="sub">—</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Today's usage</h2>
+      <p class="muted">Resets at UTC midnight. <a href="#" id="refresh">Refresh</a></p>
+      <table>
+        <thead><tr><th>Endpoint</th><th>Calls today</th><th>Daily quota</th><th>% used</th></tr></thead>
+        <tbody id="usage-body">
+          <tr><td colspan="4" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Quick copy-paste</h2>
+      <p class="muted">Use these in your code or terminal.</p>
+      <div class="code-tabs">
+        <div class="tabs">
+          <button class="tab active" data-tab="curl">curl</button>
+          <button class="tab" data-tab="js">JavaScript</button>
+          <button class="tab" data-tab="py">Python</button>
+        </div>
+        <pre class="active" data-tab="curl"><code id="snip-curl">curl "https://api.sitetrace.it.com/api/shot?url=https://example.com" \
+  -H "Authorization: Bearer YOUR_KEY" \
+  --output shot.png</code></pre>
+        <pre data-tab="js"><code>const r = await fetch('https://api.sitetrace.it.com/api/shot?url=https://example.com', {
+  headers: { 'Authorization': 'Bearer YOUR_KEY' }
+});
+const blob = await r.blob();</code></pre>
+        <pre data-tab="py"><code>import requests
+r = requests.get(
+  'https://api.sitetrace.it.com/api/shot',
+  params={'url': 'https://example.com'},
+  headers={'Authorization': 'Bearer YOUR_KEY'},
+)
+with open('shot.png', 'wb') as f:
+    f.write(r.content)</code></pre>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/privacy/">Privacy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const params = new URLSearchParams(location.search);
+    const key = params.get('key') || localStorage.getItem('sitetrace_key') || '';
+    if (!key) {
+      document.body.innerHTML = '<div class="container" style="padding:80px 0;text-align:center;"><h1>No key</h1><p>Open this page with <code>?key=stk_...</code> in the URL, or <a href="/signup/">sign up</a> to get one.</p></div>';
+    } else {
+      localStorage.setItem('sitetrace_key', key);
+      document.getElementById('key').textContent = key;
+      document.getElementById('snip-curl').textContent = document.getElementById('snip-curl').textContent.replace('YOUR_KEY', key);
+      load();
+    }
+
+    async function load() {
+      const r = await fetch('/api/account?key=' + encodeURIComponent(key));
+      if (!r.ok) {
+        document.getElementById('key').textContent = '(invalid key)';
+        return;
+      }
+      const d = await r.json();
+      document.getElementById('plan').textContent = (d.user.plan || 'free').toUpperCase();
+      document.getElementById('status').textContent = d.user.status.toUpperCase();
+      document.getElementById('quota').textContent = d.user.daily_quota.toLocaleString();
+      document.getElementById('sub').textContent = d.user.status === 'active' ? 'Active' : 'Inactive — ' + d.user.status;
+      const body = document.getElementById('usage-body');
+      const ENDPOINTS = ['shot', 'ip', 'email', 'headers', 'preview', 'certs'];
+      const used = d.usage.by_endpoint;
+      body.innerHTML = ENDPOINTS.map(ep => {
+        const c = used[ep] || 0;
+        const pct = Math.min(100, Math.round((c / d.user.daily_quota) * 100));
+        const bar = `<div style="background: var(--code-bg); border-radius: 3px; height: 8px; width: 100px; overflow: hidden;"><div style="background: ${pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--good)'}; width: ${pct}%; height: 100%;"></div></div>`;
+        return `<tr><td><code>/api/${ep}</code></td><td>${c.toLocaleString()}</td><td>${d.user.daily_quota.toLocaleString()}</td><td>${bar} ${pct}%</td></tr>`;
+      }).join('');
+    }
+
+    function copyKey() {
+      navigator.clipboard.writeText(key);
+      document.getElementById('copy-msg').textContent = 'Copied!';
+      setTimeout(() => { document.getElementById('copy-msg').textContent = ''; }, 2000);
+    }
+
+    document.getElementById('refresh').addEventListener('click', (e) => { e.preventDefault(); load(); });
+
+    // Tab switcher
+    document.querySelectorAll('.code-tabs').forEach(block => {
+      const tabs = block.querySelectorAll('.tab');
+      const pres = block.querySelectorAll('pre');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.tab;
+          tabs.forEach(t => t.classList.toggle('active', t === tab));
+          pres.forEach(p => p.classList.toggle('active', p.dataset.tab === target));
+        });
+      });
+    });
+  </script>
+</body>
+</html>

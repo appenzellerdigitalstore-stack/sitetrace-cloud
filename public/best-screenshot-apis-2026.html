@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>10 best screenshot APIs in 2026 (honest review) | sitetrace API</title>
+  <meta name="description" content="We tried every screenshot API we could find. Here's what we liked, what we didn't, and which one to pick depending on what you're doing." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/best-screenshot-apis-2026/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>10 best screenshot APIs in 2026</h1>
+      <p class="lede">A URL-to-PNG API is a small thing to do well, and most of them do it well. We tried the ones we could find and ranked them by what we think most people actually need.</p>
+      <p class="muted" style="font-size: 14px;">Last updated January 2026. Pricing is current as of writing but always check each provider's page before you commit.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>How we judged them</h2>
+      <p>Five criteria, roughly equally weighted:</p>
+      <ol>
+        <li><strong>Free tier</strong> — Is there one? Does it require a card? Is the quota usable?</li>
+        <li><strong>Price at scale</strong> — What does it cost per 1,000 screenshots once you're past the free tier?</li>
+        <li><strong>Render quality</strong> — Does it handle modern web pages (JS-heavy, infinite scroll, lazy-loaded images)?</li>
+        <li><strong>Latency</strong> — How long does the first request take? The second?</li>
+        <li><strong>Ease of integration</strong> — Can you go from "URL" to "PNG in my code" in 5 minutes?</li>
+      </ol>
+    </section>
+
+    <section>
+      <h2>The list</h2>
+
+      <h3 style="margin-top: 32px;">1. sitetrace — best free tier, best value for indie devs</h3>
+      <p>100 calls/day with no signup. 1,000/day with just an email. $9/mo for 1k/day, $49/mo for 30k/day. Runs on Cloudflare's edge in 300+ cities. Real headless Chrome, all viewports, dark mode emulation, full-page capture.</p>
+      <p><strong>Best for:</strong> indie devs, prototypes, link-in-bio tools, anything under 200k shots/mo.</p>
+      <p><a href="/shot/">Try it</a> · <a href="/vs-urlbox/">vs Urlbox</a></p>
+
+      <h3 style="margin-top: 32px;">2. Urlbox — best for enterprise + PDF + video</h3>
+      <p>The OG. $49/mo for 5,000 shots/mo, $399/mo for 100k/mo. Best PDF rendering, has video recording, has a bulk API. The de-facto standard for "serious" use. No free tier.</p>
+      <p><strong>Best for:</strong> teams that need PDF rendering, video, or a vendor with a 10-year track record.</p>
+
+      <h3 style="margin-top: 32px;">3. ScreenshotAPI.net — simple, predictable pricing</h3>
+      <p>From $9/mo for 1,000 screenshots. Up to $199/mo for 100k. Reliable, well-documented. No free tier but a 100-shot trial.</p>
+      <p><strong>Best for:</strong> straightforward projects where you want a vendor that's been around a while.</p>
+
+      <h3 style="margin-top: 32px;">4. ApiFlash — good UX, on Webkit</h3>
+      <p>Uses Webkit (Safari's engine) instead of Chromium. Useful for testing what your site looks like on Safari. Pricing is similar to Urlbox.</p>
+      <p><strong>Best for:</strong> teams that care about Safari rendering parity.</p>
+
+      <h3 style="margin-top: 32px;">5. GoFullPage (Chrome extension, not API) — for one-off captures</h3>
+      <p>Not an API. A free Chrome extension that screenshots the full page. The "free" tier of full-page captures, if you don't mind doing it manually.</p>
+      <p><strong>Best for:</strong> one-off screenshots, blog post images, design references.</p>
+
+      <h3 style="margin-top: 32px;">6. Microlink — has a generous free tier</h3>
+      <p>100k requests/mo free. 250k/mo from $50. Returns a screenshot, OG metadata, and a PDF. Hosted on Cloudflare Workers. Open source.</p>
+      <p><strong>Best for:</strong> OSS projects, low-volume personal tools.</p>
+
+      <h3 style="margin-top: 32px;">7. Restpack — bundling approach</h3>
+      <p>Screenshot + HTML-to-PDF + other tools in one subscription. From $9/mo for 5,000 calls/mo. Good if you also need PDF.</p>
+      <p><strong>Best for:</strong> teams that need PDF too, and want one bill for both.</p>
+
+      <h3 style="margin-top: 32px;">8. Page2Images — long in the tooth, but works</h3>
+      <p>Around since 2012. Pricing is per-call, with a free tier of 100 calls/mo. UI is dated. Reliability is fine.</p>
+      <p><strong>Best for:</strong> legacy integrations where you can't change vendors easily.</p>
+
+      <h3 style="margin-top: 32px;">9. Screenshotmachine — pay-per-call, no subscription</h3>
+      <p>$0.05 per screenshot at the lowest tier, going down to $0.003 at scale. No subscription, just buy a credit pack.</p>
+      <p><strong>Best for:</strong> extremely low-volume use, or "I need 50 shots this one time".</p>
+
+      <h3 style="margin-top: 32px;">10. self-host with Puppeteer — free, but…</h3>
+      <p>You can run your own headless Chrome in a Docker container on a $5/mo VPS. Free at the software level, but you own all the ops: browser updates, memory leaks, scale, monitoring, security.</p>
+      <p><strong>Best for:</strong> companies with strict data-residency requirements, or engineers who like running their own infrastructure.</p>
+    </section>
+
+    <section>
+      <h2>How to pick</h2>
+      <table>
+        <thead><tr><th>Your situation</th><th>Pick</th></tr></thead>
+        <tbody>
+          <tr><td>Indie dev / side project, want a free tier</td><td><a href="/shot/">sitetrace</a>, <a href="#6-microlink">Microlink</a></td></tr>
+          <tr><td>Need PDF rendering or video</td><td>Urlbox, Restpack</td></tr>
+          <tr><td>Need to render on Safari / Webkit</td><td>ApiFlash</td></tr>
+          <tr><td>Need <em>millions</em> per month</td><td>Urlbox (custom), or self-host</td></tr>
+          <tr><td>One-off screenshots, manual workflow</td><td>GoFullPage (extension)</td></tr>
+          <tr><td>Data can't leave your infrastructure</td><td>self-host with Puppeteer</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top: 24px;"><a href="/shot/" class="btn btn-primary">Try the sitetrace API</a></p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/vs-urlbox/">vs Urlbox</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

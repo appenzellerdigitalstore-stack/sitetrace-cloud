@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>How to screenshot a website from the command line (5 ways) | sitetrace API</title>
+  <meta name="description" content="Five practical ways to take a screenshot of any website, from a one-liner to a fully scripted batch job. Including a free API option." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/how-to-screenshot-website/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>How to screenshot a website from the command line</h1>
+      <p class="lede">Five ways, from "I need it once" to "I need 10,000 a day". Each has trade-offs. Pick the one that matches what you're actually doing.</p>
+      <p class="muted" style="font-size: 14px;">Updated January 2026.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>1. The one-liner (no install, no signup)</h2>
+      <p>If you have <code>curl</code> and an internet connection, you can do this right now:</p>
+      <pre><code>curl "https://api.sitetrace.it.com/api/shot?url=https://example.com" --output shot.png</code></pre>
+      <p>That's it. The image lands in <code>shot.png</code>. You can open it, attach it to an email, post it on Slack — whatever you need.</p>
+      <p>This uses our free, no-signup tier. 100 calls/day per IP. Good for "I need to take a screenshot once in a while" and "I want to test what an API can do before I commit".</p>
+      <p><strong>Trade-off:</strong> Goes through our servers, so don't use it for sensitive URLs.</p>
+    </section>
+
+    <section>
+      <h2>2. With an API key (higher quota, faster)</h2>
+      <p>Sign up at <a href="/signup/">/signup</a> to get a free key (1,000 calls/day). Then:</p>
+      <pre><code>curl "https://api.sitetrace.it.com/api/shot?url=https://example.com" \
+  -H "Authorization: Bearer stk_your_key_here" \
+  --output shot.png</code></pre>
+      <p>Same call, higher quota. If you're doing this 50 times a day, the free tier without a key runs out; this is what you switch to.</p>
+    </section>
+
+    <section>
+      <h2>3. Headless Chrome on your own machine (free, more control)</h2>
+      <p>If you have <code>node</code> and <code>npm</code>:</p>
+      <pre><code>npm install puppeteer
+node -e "
+  const puppeteer = require('puppeteer');
+  (async () => {
+    const browser = await puppeteer.launch();
+    const page = await browser.newPage();
+    await page.setViewport({ width: 1280, height: 720 });
+    await page.goto('https://example.com', { waitUntil: 'networkidle0' });
+    await page.screenshot({ path: 'shot.png' });
+    await browser.close();
+  })();
+"</code></pre>
+      <p>You get the full power of headless Chrome: any viewport, full-page capture, dark mode emulation, executing JS before the shot, etc.</p>
+      <p><strong>Trade-off:</strong> Requires ~300 MB of Chrome download, plus the runtime cost of keeping a browser around. Doesn't scale to "screenshot 10,000 URLs in an hour" without infrastructure work.</p>
+    </section>
+
+    <section>
+      <h2>4. Chrome itself, from the command line (one-off, no install)</h2>
+      <p>Modern Chrome supports a <code>--screenshot</code> flag:</p>
+      <pre><code>google-chrome --headless --disable-gpu --screenshot=shot.png --window-size=1280,720 https://example.com</code></pre>
+      <p>(On Windows, it's <code>"C:\Program Files\Google\Chrome\Application\chrome.exe"</code> with the same flags. Or use Edge.)</p>
+      <p>Only captures the viewport, not the full page. No JS hooks, no waiting, no dark mode. But it works with the Chrome you already have, no install.</p>
+    </section>
+
+    <section>
+      <h2>5. A screenshot API (the right answer for "I need 10,000 a day")</h2>
+      <p>If you're doing this at scale — link previews for a chat app, OG images for a newsletter tool, screenshots for a marketplace listing — the right answer is an API:</p>
+      <pre><code>async function getShot(url) {
+  const r = await fetch('https://api.sitetrace.it.com/api/shot?url=' + encodeURIComponent(url), {
+    headers: { 'Authorization': 'Bearer ' + API_KEY }
+  });
+  return Buffer.from(await r.arrayBuffer());
+}</code></pre>
+      <p>No Chrome to install, no memory leaks to debug, no bot-detection arms race. The API runs in the vendor's cloud; you just call it. The cost is real (~$0.01–0.05 per shot at scale) but the ops savings are larger.</p>
+      <p>Our full comparison of screenshot APIs is in the <a href="/best-screenshot-apis-2026/">best screenshot APIs 2026</a> guide.</p>
+    </section>
+
+    <section>
+      <h2>Which one is right for you</h2>
+      <table>
+        <thead><tr><th>Situation</th><th>Use this</th></tr></thead>
+        <tbody>
+          <tr><td>One-off, no install, right now</td><td>Option 1 (curl + no-signup API)</td></tr>
+          <tr><td>Few per day, want a free quota</td><td>Option 2 (curl + free key)</td></tr>
+          <tr><td>Local script, want control, low volume</td><td>Option 3 (Puppeteer)</td></tr>
+          <tr><td>One screenshot, want the actual installed Chrome</td><td>Option 4 (chrome --screenshot)</td></tr>
+          <tr><td>1000+ per day, want someone else to deal with it</td><td>Option 5 (screenshot API)</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/shot/">Screenshot API</a>
+        <a href="/docs/">Docs</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

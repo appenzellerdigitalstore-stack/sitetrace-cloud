@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Status — sitetrace API</title>
+  <meta name="description" content="Live health of every sitetrace API endpoint. Refreshes every 30 seconds." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://api.sitetrace.it.com/status/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>Status</h1>
+      <p class="lede">Live health of every endpoint. Refreshes every 30 seconds. <a href="#" id="refresh">Refresh now</a></p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <div id="overall" class="api-card" style="margin-bottom: 16px;">
+        <h3>All systems: <span id="overall-text">checking…</span></h3>
+      </div>
+
+      <div class="status-row">
+        <span class="status-dot" id="dot-shot"></span>
+        <div style="flex: 1;">
+          <strong>Screenshot</strong> <code>/api/shot</code>
+          <p class="muted" id="meta-shot" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-dot" id="dot-ip"></span>
+        <div style="flex: 1;">
+          <strong>IP Reputation</strong> <code>/api/ip</code>
+          <p class="muted" id="meta-ip" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-dot" id="dot-email"></span>
+        <div style="flex: 1;">
+          <strong>Email Deliverability</strong> <code>/api/email</code>
+          <p class="muted" id="meta-email" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-dot" id="dot-headers"></span>
+        <div style="flex: 1;">
+          <strong>HTTP Headers</strong> <code>/api/headers</code>
+          <p class="muted" id="meta-headers" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-dot" id="dot-preview"></span>
+        <div style="flex: 1;">
+          <strong>URL Preview</strong> <code>/api/preview</code>
+          <p class="muted" id="meta-preview" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+      <div class="status-row">
+        <span class="status-dot" id="dot-certs"></span>
+        <div style="flex: 1;">
+          <strong>SSL / CT</strong> <code>/api/certs</code>
+          <p class="muted" id="meta-certs" style="margin: 4px 0 0; font-size: 13px;"></p>
+        </div>
+      </div>
+
+      <p class="muted center" style="margin-top: 24px; font-size: 13px;">
+        This page probes each endpoint with a tiny no-op call (a known-good domain/IP) and reports the result. Past incidents are not yet logged publicly — the changelog has the history.
+      </p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/changelog/">Changelog</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const probes = [
+      { id: 'shot',    url: '/api/shot?url=https://example.com', expect: 'image' },
+      { id: 'ip',      url: '/api/ip?ip=8.8.8.8',                expect: 'json' },
+      { id: 'email',   url: '/api/email?domain=google.com',      expect: 'json' },
+      { id: 'headers', url: '/api/headers?url=https://example.com', expect: 'json' },
+      { id: 'preview', url: '/api/preview?url=https://example.com', expect: 'json' },
+      { id: 'certs',   url: '/api/certs?domain=github.com&limit=1', expect: 'json' },
+    ];
+
+    async function check(p) {
+      const t0 = Date.now();
+      try {
+        const r = await fetch(p.url, { cache: 'no-store' });
+        const ms = Date.now() - t0;
+        return { ok: r.ok, ms, status: r.status };
+      } catch (e) {
+        return { ok: false, ms: Date.now() - t0, status: 0, err: e.message };
+      }
+    }
+
+    async function load() {
+      const results = await Promise.all(probes.map(async p => ({ ...p, ...(await check(p)) })));
+      let allOk = true;
+      for (const r of results) {
+        const dot = document.getElementById('dot-' + r.id);
+        const meta = document.getElementById('meta-' + r.id);
+        dot.classList.remove('ok', 'warn', 'bad');
+        if (r.ok) {
+          dot.classList.add('ok');
+          meta.textContent = `HTTP ${r.status} · ${r.ms}ms · just now`;
+        } else {
+          dot.classList.add('bad');
+          allOk = false;
+          meta.textContent = `HTTP ${r.status || '—'} · ${r.err || 'error'}`;
+        }
+      }
+      const overall = document.getElementById('overall-text');
+      overall.textContent = allOk ? 'operational ✓' : 'degraded ✗';
+      overall.style.color = allOk ? 'var(--good)' : 'var(--bad)';
+    }
+
+    load();
+    setInterval(load, 30000);
+    document.getElementById('refresh').addEventListener('click', (e) => { e.preventDefault(); load(); });
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+# sitetrace-api ads.txt
+# AdSense not yet applied (the docs site is mostly dev-facing, low ad value).
+# When applied, paste the line from your AdSense dashboard here.
+# Format: google.com, pub-XXXXXXXXXXXXXXXX, DIRECT, f08c47fec0942fa0

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>IPinfo vs sitetrace — IP reputation API comparison (2026) | sitetrace API</title>
+  <meta name="description" content="IPinfo and sitetrace both do IP geolocation and reputation. Here's how they differ on price, free tier, data sources, and what each is good for." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/vs-ipinfo/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>IPinfo vs sitetrace</h1>
+      <p class="lede">Both do IP lookups. IPinfo is the bigger service with a wider feature set; we focus on reputation + geo and price aggressively. Here's the breakdown.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>At a glance</h2>
+      <table>
+        <thead><tr><th></th><th>sitetrace</th><th>IPinfo</th></tr></thead>
+        <tbody>
+          <tr><td>Free tier (no signup)</td><td>100 calls/day</td><td>50,000 calls/mo (≈1,600/day)</td></tr>
+          <tr><td>Free tier with signup</td><td>1,000 calls/day</td><td>— (paid plans start at $49/mo)</td></tr>
+          <tr><td>Cheapest paid plan</td><td>$9/mo (1k/day)</td><td>$49/mo (50k/mo)</td></tr>
+          <tr><td>Cost per 1,000 lookups</td><td>$0.30 (Hobby) — $0.10 (Pro)</td><td>$0.98 — $0.30 (Business)</td></tr>
+          <tr><td>DNSBL reputation check</td><td>✓ 7 lists</td><td>— (they lean on their own threat feeds)</td></tr>
+          <tr><td>Geolocation</td><td>✓ country, city, ASN, ISP, proxy/hosting/mobile</td><td>✓ + carrier detection, timezone, company name</td></tr>
+          <tr><td>Privacy detection (VPN, TOR, proxy)</td><td>✓</td><td>✓ (more accurate, paid tiers)</td></tr>
+          <tr><td>IP ranges / CIDR</td><td>—</td><td>✓ (downloadable databases)</td></tr>
+          <tr><td>Hosted in</td><td>Cloudflare edge (300+ POPs)</td><td>AWS (multi-region)</td></tr>
+          <tr><td>Self-hostable database</td><td>—</td><td>✓ (downloads)</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Where sitetrace wins</h2>
+      <h3>Reputation, not just geo</h3>
+      <p>IPinfo is great at "where is this IP from". We're great at "is this IP on any spam blocklists". Different questions, different APIs. If you care about blocking fake signups, our score (built from 7 DNSBLs) is more directly useful than IPinfo's privacy flag.</p>
+      <h3>Price for small projects</h3>
+      <p>Our free tier (1,000/day with email) is enough for most side projects. IPinfo's free tier is 50k/mo which sounds bigger, but it's a no-card-required trial that requires a credit card for the paid plans and is structured for "real" customers. For a hobby project, ours is friendlier.</p>
+      <h3>Edge cache, edge compute</h3>
+      <p>We run in 300+ Cloudflare POPs. IPinfo is in AWS regions. The first request from a new region is slow either way; subsequent requests are usually faster on our end.</p>
+    </section>
+
+    <section>
+      <h2>Where IPinfo wins</h2>
+      <h3>Data depth</h3>
+      <p>IPinfo has 8+ years of curated IP data, ASN databases, carrier detection, company names, and CIDR ranges you can download. Our geo comes from ip-api.com, which is good but not as deep as IPinfo's own data.</p>
+      <h3>Privacy/VPN/TOR detection</h3>
+      <p>IPinfo's privacy detection is the industry standard. We flag "proxy" from ip-api.com; IPinfo has a much richer taxonomy (VPN, TOR, relay, public proxy, mobile proxy, etc.).</p>
+      <h3>Downloadable databases</h3>
+      <p>If you want to ship a self-hosted version (air-gapped, no API call), IPinfo sells you a one-time license for the database. We don't.</p>
+      <h3>Tenure + customer base</h3>
+      <p>IPinfo is used by big companies. We're new. If "who else uses this" matters for your procurement process, IPinfo is the safer pick.</p>
+    </section>
+
+    <section>
+      <h2>Which should you use</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Use sitetrace if…</h3>
+          <p>You want DNSBL-based reputation scoring, a generous free tier for small projects, or you're on the Cloudflare edge stack.</p>
+        </div>
+        <div class="api-card">
+          <h3>Use IPinfo if…</h3>
+          <p>You need the deepest possible IP data, accurate privacy/VPN detection, downloadable databases, or a vendor with a long track record.</p>
+        </div>
+        <div class="api-card">
+          <h3>Use both</h3>
+          <p>Nothing wrong with this. Use IPinfo for the "where is this IP" enrichment, and us for the "should I let this IP sign up" decision.</p>
+        </div>
+      </div>
+      <p style="margin-top: 24px;"><a href="/ip/" class="btn btn-primary">Try the sitetrace IP API</a></p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/ip/">IP API</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

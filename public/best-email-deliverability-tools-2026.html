@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>7 best email deliverability tools in 2026 | sitetrace API</title>
+  <meta name="description" content="A practical roundup of the email deliverability and monitoring tools worth using in 2026. We focus on tools that check the records that matter (SPF, DKIM, DMARC, MX, BIMI) and tell you when something is broken." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/best-email-deliverability-tools-2026/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>7 best email deliverability tools in 2026</h1>
+      <p class="lede">A practical list. We focus on tools that check the records that matter (SPF, DKIM, DMARC, MX, BIMI) and tell you when something is broken. Updated January 2026.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <h2>1. sitetrace — best for SaaS monitoring at scale</h2>
+      <p>One API call returns SPF, DKIM (probed across 20 common selectors), DMARC, MX, BIMI, plus a 0-100 score. Free tier is 100 calls/day with no signup, 1,000/day with email. $9/mo for 1k/day, $49/mo for 30k/day.</p>
+      <p><strong>Best for:</strong> ESPs and SaaS products that want to monitor customer sending domains. <a href="/email/">Try it</a> · <a href="/vs-hunter/">vs Hunter</a></p>
+
+      <h2 style="margin-top: 40px;">2. MXToolbox — the grandfather, everything-in-one</h2>
+      <p>Has been around since the early 2000s. Checks every DNS record type, plus blacklist lookups, plus SMTP diagnostics, plus DMARC reporting. The UI is dated but the data is deep.</p>
+      <p>Free for one-off lookups. Paid plans start at $9/mo for the "monitoring" tier.</p>
+      <p><strong>Best for:</strong> ad-hoc diagnosis, IT teams that want a Swiss Army knife.</p>
+
+      <h2 style="margin-top: 40px;">3. Mail-tester — test your actual email</h2>
+      <p>Different angle: you send a test email to their address, and they give you a spam-score. Includes SPF/DKIM/DMARC checks, plus content analysis, plus blacklists. Free for 1 test per day.</p>
+      <p><strong>Best for:</strong> "I sent a campaign and it went to spam — why?".</p>
+
+      <h2 style="margin-top: 40px;">4. Postmark's DKIM/SPF/DMARC checker — minimal, fast</h2>
+      <p>One form, one result. No signup. Stays out of your way. Postmark built it as a free utility, and it's the simplest version of what we do.</p>
+      <p><strong>Best for:</strong> one-off checks. Not an API, so not for monitoring.</p>
+
+      <h2 style="margin-top: 40px;">5. Google Postmaster Tools — if you send to Gmail</h2>
+      <p>Free, but you have to be a Google-approved sender. Shows your domain reputation, IP reputation, spam rate, DMARC alignment rates. The most authoritative source for "how Gmail sees you".</p>
+      <p><strong>Best for:</strong> any sender that has Gmail as a major inbox. Required if you send &gt;5k/day to Gmail.</p>
+
+      <h2 style="margin-top: 40px;">6. Valimail — DMARC enforcement + monitoring</h2>
+      <p>The commercial leader in DMARC. Enforces SPF/DKIM alignment, blocks spoofing, sends aggregate reports. $5k+/year, enterprise pricing.</p>
+      <p><strong>Best for:</strong> large senders (banks, airlines, retailers) that need to actively block phishing.</p>
+
+      <h2 style="margin-top: 40px;">7. dmarcian — DMARC-focused, more affordable</h2>
+      <p>Similar to Valimail but cheaper. Focuses on DMARC monitoring, reporting, and gradual policy tightening. Starts around $150/mo.</p>
+      <p><strong>Best for:</strong> mid-size senders that need DMARC but can't afford Valimail.</p>
+    </section>
+
+    <section>
+      <h2>Quick comparison</h2>
+      <table>
+        <thead><tr><th>Tool</th><th>SPF/DKIM/DMARC</th><th>API</th><th>Free tier</th><th>Price</th></tr></thead>
+        <tbody>
+          <tr><td><a href="/email/">sitetrace</a></td><td>✓ all 3</td><td>✓</td><td>100/day, 1k/day w/ signup</td><td>$9/mo+</td></tr>
+          <tr><td>MXToolbox</td><td>✓ all 3 + 30+ others</td><td>Paid</td><td>One-off free</td><td>$9/mo+</td></tr>
+          <tr><td>Mail-tester</td><td>✓</td><td>—</td><td>1 test/day</td><td>—</td></tr>
+          <tr><td>Postmark checker</td><td>✓ all 3</td><td>—</td><td>Unlimited</td><td>Free</td></tr>
+          <tr><td>Postmaster Tools</td><td>— (reputation only)</td><td>—</td><td>Unlimited</td><td>Free</td></tr>
+          <tr><td>Valimail</td><td>✓ all 3 + enforcement</td><td>✓</td><td>—</td><td>$5k+/yr</td></tr>
+          <tr><td>dmarcian</td><td>✓ all 3 + monitoring</td><td>✓</td><td>—</td><td>$150/mo+</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Which to pick</h2>
+      <p>If you're shipping a SaaS or ESP that needs to monitor customer domains, use <a href="/email/">sitetrace</a>. If you need DMARC enforcement (not just monitoring) and have a budget, look at Valimail or dmarcian. If you just want to check a domain once, Postmark's free tool is fine.</p>
+      <p style="margin-top: 24px;"><a href="/signup/" class="btn btn-primary">Get a free sitetrace API key</a></p>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/email/">Email API</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

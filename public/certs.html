@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SSL / Certificate Transparency API | sitetrace API</title>
+  <meta name="description" content="Query the Certificate Transparency log for any domain. Get every SSL certificate ever issued, in clean JSON. Brand monitoring, subdomain recon, security audits. Free tier: 100 calls/day, no signup." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/certs/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/" class="active">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 80px; border-top: none;">
+      <span class="badge">/api/certs</span>
+      <h1>Every cert ever issued for any domain.</h1>
+      <p class="lede">The Certificate Transparency log is public. We wrap crt.sh in a clean JSON API with a 24-hour cache. For brand monitoring, subdomain recon, and security audits.</p>
+    </section>
+
+    <section>
+      <h2>Try it</h2>
+      <pre><code>curl "https://api.sitetrace.it.com/api/certs?domain=github.com&limit=3" | jq</code></pre>
+      <pre><code>{
+  "domain": "github.com",
+  "count": 3,
+  "fetched_at": 1735689600,
+  "cache": "MISS",
+  "certs": [
+    {
+      "id": 12345678,
+      "issuer": "Let's Encrypt R3",
+      "issuer_dn": "CN=Let's Encrypt R3, O=Let's Encrypt, C=US",
+      "common_name": "github.com",
+      "name_value": ["github.com"],
+      "not_before": "2025-12-01T00:00:00",
+      "not_after": "2026-03-01T00:00:00",
+      "serial_number": "03:a1:b2:c3:...",
+      "ca": true
+    }
+    /* ... */
+  ]
+}</code></pre>
+    </section>
+
+    <section>
+      <h2>Options</h2>
+      <table>
+        <tr><th>Param</th><th>Default</th><th>Description</th></tr>
+        <tr><td><code>domain</code> <span class="badge">required</span></td><td>—</td><td>The domain to search. Returns every cert issued to it or any subdomain.</td></tr>
+        <tr><td><code>exclude</code></td><td>—</td><td>Comma-separated list of names to skip. Useful for hiding test subdomains.</td></tr>
+        <tr><td><code>limit</code></td><td>200</td><td>Max number of certs to return (1-1000). Sorted newest first.</td></tr>
+      </table>
+    </section>
+
+    <section>
+      <h2>Use it to</h2>
+      <div class="api-grid">
+        <div class="api-card">
+          <h3>Brand monitoring</h3>
+          <p>Watch for certs issued to lookalike domains. <code>yourbrand.com</code>, <code>your-brand.com</code>, <code>yourbrand-login.com</code> — every phishing-attempt domain leaves a CT trail.</p>
+        </div>
+        <div class="api-card">
+          <h3>Subdomain discovery</h3>
+          <p>Recon your own footprint. Every subdomain that ever had a cert is in the response. Shadow IT becomes visible.</p>
+        </div>
+        <div class="api-card">
+          <h3>Cert-renewal monitoring</h3>
+          <p>Poll daily. If a cert's <code>not_after</code> is in the past, your cert was missed at renewal.</p>
+        </div>
+        <div class="api-card">
+          <h3>Compliance audits</h3>
+          <p>For every domain in your inventory, list the issuing CA and the validity period. Catches mis-issued or non-approved CAs.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

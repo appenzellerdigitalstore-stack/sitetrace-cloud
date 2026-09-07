@@ -1,0 +1,22 @@
+# Cache policy for sitetrace-api
+# /api/*: no store, dynamic. (Some endpoints set their own Cache-Control
+# in the response — _headers values get appended, not replaced.)
+# Static site: short cache so updates land fast during dev; raise for prod.
+
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: SAMEORIGIN
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+
+/api/*
+  Cache-Control: no-store
+
+/styles.css
+  Cache-Control: public, max-age=3600, must-revalidate
+
+/sitemap.xml
+  Cache-Control: public, max-age=3600
+
+/robots.txt
+  Cache-Control: public, max-age=86400

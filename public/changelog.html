@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Changelog — sitetrace API</title>
+  <meta name="description" content="What's new in the sitetrace API. Releases, fixes, deprecations." />
+  <link rel="canonical" href="https://api.sitetrace.it.com/changelog/" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>Changelog</h1>
+      <p class="lede">Every release. Newest first. Subscribe via <a href="/changelog.xml">RSS</a>.</p>
+    </section>
+
+    <section style="border-top: none; padding-top: 0;">
+      <article>
+        <h3>v0.1.0 — <span class="muted">launch</span></h3>
+        <p class="muted">Initial release. Six APIs live:</p>
+        <ul>
+          <li><code>/api/shot</code> — Screenshot (Cloudflare Browser Rendering)</li>
+          <li><code>/api/ip</code> — IP reputation (7 DNSBLs + geo)</li>
+          <li><code>/api/email</code> — Email deliverability (SPF/DKIM/DMARC/MX/BIMI)</li>
+          <li><code>/api/headers</code> — HTTP security-header score</li>
+          <li><code>/api/preview</code> — Open Graph / URL preview</li>
+          <li><code>/api/certs</code> — SSL / Certificate Transparency</li>
+        </ul>
+        <p>Pricing: free 100/day, Hobby $9/mo, Pro $49/mo, Volume $199/mo.</p>
+      </article>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/status/">Status</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

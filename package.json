@@ -1,0 +1,25 @@
+{
+  "name": "sitetrace-api",
+  "version": "0.1.0",
+  "description": "Sitetrace API — utility APIs for developers: screenshots, IP reputation, email deliverability, URL preview, SSL/CT lookup",
+  "private": true,
+  "type": "module",
+  "homepage": "https://api.sitetrace.it.com",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "dev": "wrangler pages dev .",
+    "deploy": "wrangler pages deploy . --project-name=sitetrace-api --commit-dirty=true",
+    "deploy:dry": "wrangler pages deploy . --project-name=sitetrace-api --dry-run",
+    "db:migrate": "wrangler d1 execute sitetrace-api --file=migrations/0001_init.sql",
+    "db:migrate:local": "wrangler d1 execute sitetrace-api --local --file=migrations/0001_init.sql",
+    "db:seed": "wrangler d1 execute sitetrace-api --file=migrations/seed.sql",
+    "logs": "wrangler pages deployment list --project-name=sitetrace-api"
+  },
+  "devDependencies": {
+    "wrangler": "^3.90.0",
+    "@cloudflare/puppeteer": "^1.0.0"
+  }
+}

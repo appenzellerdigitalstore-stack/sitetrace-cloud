@@ -118,7 +118,32 @@ class HeadExtractor {
           if (name === 'description' && !self.metaDescription) self.metaDescription = content;
           else if (name === 'keywords' && !self.metaKeywords) self.metaKeywords = content;
           else if (name === 'robots' && !self.robotsMeta) self.robotsMeta = content;
+          else if (name === 'viewport' && !self.viewport) self.viewport = content;
           else if (prop.startsWith('og:')) self.og[prop.slice(3)] = content;
+          else if (prop.startsWith('twitter:') || name.startsWith('twitter:')) self.twitterCard[prop.startsWith('twitter:') ? prop.slice(8) : name.slice(8)] = content;
+        },
+      });
+
+    // HTML tag (capture lang attribute)
+    const htmlEls = new HTMLRewriter()
+      .on('html', {
+        element(el) {
+          if (!self.lang) self.lang = el.getAttribute('lang') || null;
+        },
+      });
+
+    // Link tags (favicon, hreflang)
+    const linkElsForHead = new HTMLRewriter()
+      .on('link', {
+        element(el) {
+          const rel = (el.getAttribute('rel') || '').toLowerCase();
+          const href = el.getAttribute('href') || '';
+          if (!href) return;
+          if (rel.includes('icon')) self.favicon.push(href);
+          if (rel.includes('hreflang')) {
+            const lang = el.getAttribute('hreflang') || '';
+            if (lang) self.hreflangs.push(`${lang} → ${href}`);
+          }
         },
       });
 
@@ -191,7 +216,7 @@ class HeadExtractor {
         },
       });
 
-    const linkEls = new HTMLRewriter()
+    const aLinkEls = new HTMLRewriter()
       .on('a[href]', {
         element(el) {
           const href = el.getAttribute('href') || '';
@@ -208,12 +233,14 @@ class HeadExtractor {
       });
 
     // Chain all rewriters together
-    return titleEl.on(metaEls)
+    return titleEl.on(htmlEls)
+      .on(metaEls)
       .on(canonicalEl)
+      .on(linkElsForHead)
       .on(jsonLdEl)
       .on(headingEls)
       .on(imageEls)
-      .on(linkEls);
+      .on(aLinkEls);
   }
 }
 
@@ -338,6 +365,106 @@ function scoresSEO(data) {
     issues.push('Page not served over HTTPS');
   } else {
     passed.push('HTTPS is enabled');
+  }
+
+  // ── Language ────────────────────────────────────────────────────────────
+  if (data.lang) {
+    passed.push(`Document language declared: ${data.lang}`);
+  } else {
+    warnings.push('No `<html lang="...">` attribute — not accessible, hurts SEO');
+    score -= 2;
+  }
+
+  // ── Viewport meta (mobile-friendly) ─────────────────────────────────────
+  if (data.viewport) {
+    passed.push('Mobile viewport meta tag present');
+  } else {
+    warnings.push('No viewport meta tag — page not optimized for mobile');
+    score -= 3;
+  }
+
+  // ── Doctype ────────────────────────────────────────────────────────────
+  if (data.doctype === 'html5') {
+    passed.push('HTML5 doctype declared');
+  } else if (data.doctype === 'quirks_or_none') {
+    warnings.push('Missing or non-HTML5 doctype — page may render in quirks mode');
+    score -= 3;
+  }
+
+  // ── Favicon ────────────────────────────────────────────────────────────
+  if (data.favicon && data.favicon.length > 0) {
+    passed.push(`Favicon present (${data.favicon.length} link tag${data.favicon.length === 1 ? '' : 's'})`);
+  } else {
+    warnings.push('No `<link rel="icon">` — affects browser tab + SERP favicon');
+    score -= 1;
+  }
+
+  // ── Robots meta ────────────────────────────────────────────────────────
+  if (data.robotsMeta) {
+    const lower = data.robotsMeta.toLowerCase();
+    if (lower.includes('noindex')) {
+      issues.push(`Meta robots: "${data.robotsMeta}" — page is excluded from search engines`);
+      score -= 8;
+    } else if (lower.includes('nofollow')) {
+      warnings.push(`Meta robots: "${data.robotsMeta}" — links from this page won't pass equity`);
+      score -= 2;
+    } else {
+      passed.push(`Meta robots: "${data.robotsMeta}"`);
+    }
+  } else {
+    passed.push('Meta robots allows indexing');
+  }
+
+  // ── Open Graph completeness ─────────────────────────────────────────────
+  const ogPresent = data.openGraph && Object.keys(data.openGraph).length > 0;
+  const ogRequired = ['og:title', 'og:description', 'og:image', 'og:url'];
+  const ogMissing = ogRequired.filter((k) => !data.openGraph[k]);
+  if (!ogPresent) {
+    warnings.push('No Open Graph tags — links will look plain when shared on social media');
+    score -= 3;
+  } else if (ogMissing.length > 0) {
+    warnings.push(`Missing Open Graph tags: ${ogMissing.join(', ')}`);
+    score -= Math.min(3, ogMissing.length);
+  } else {
+    passed.push('Open Graph tags complete (title, description, image, URL)');
+  }
+
+  // ── Twitter Card ───────────────────────────────────────────────────────
+  const twitterTags = ['twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'];
+  const twitterMissing = twitterTags.filter((k) => !data.twitterCard[k]);
+  if (data.twitterCard && Object.keys(data.twitterCard).length > 0) {
+    if (twitterMissing.length === 0) {
+      passed.push('Twitter Card tags complete');
+    } else {
+      warnings.push(`Twitter Card missing: ${twitterMissing.join(', ')}`);
+      score -= 2;
+    }
+  } else {
+    warnings.push('No Twitter Card tags — X/Twitter shares will use Open Graph only');
+    score -= 1;
+  }
+
+  // ── Hreflang (internationalization) ────────────────────────────────────
+  if (data.hreflangs && data.hreflangs.length > 0) {
+    passed.push(`Hreflang declared: ${data.hreflangs.slice(0, 5).join(', ')}${data.hreflangs.length > 5 ? ` (+${data.hreflangs.length - 5} more)` : ''}`);
+  }
+  // Note: not penalizing absence — many sites are single-language
+
+  // ── Content quality signals ─────────────────────────────────────────────
+  if (data.wordCount < 100) {
+    warnings.push(`Thin content (${data.wordCount} words — search engines prefer 300+ for ranking)`);
+    score -= 5;
+  } else if (data.wordCount < 300) {
+    warnings.push(`Short content (${data.wordCount} words — aim for 300+ for competitive topics)`);
+    score -= 2;
+  } else {
+    passed.push(`Content depth: ${data.wordCount} words`);
+  }
+
+  // ── HTML size sanity ──────────────────────────────────────────────────
+  if (data.htmlSizeKb > 1000) {
+    warnings.push(`Heavy HTML (${data.htmlSizeKb}KB) — consider minification or code-splitting`);
+    score -= 2;
   }
 
   const grade =
@@ -475,9 +602,20 @@ export async function onRequestGet(context) {
   const wordCount = bodyText.split(/\s+/).filter(Boolean).length;
 
   // Assemble the audit data
+  // Doctype detection (simple regex on first 200 chars)
+  const headSnippet = html.slice(0, 200).toLowerCase();
+  const doctype = headSnippet.startsWith('<!doctype html>') || headSnippet.startsWith('<!doctype html ') ? 'html5'
+                  : headSnippet.includes('<!doctype') ? 'quirks_or_none'
+                  : null;
+
   const auditData = {
     url: urlObj.href,
     title: extractor.title?.trim() || null,
+    lang: extractor.lang,
+    viewport: extractor.viewport,
+    doctype,
+    favicon: extractor.favicon,
+    hreflangs: extractor.hreflangs,
     metaDescription: extractor.metaDescription,
     metaKeywords: extractor.metaKeywords,
     canonical: extractor.canonical,
@@ -496,6 +634,7 @@ export async function onRequestGet(context) {
       external_sample: [...extractor.linksExternal].slice(0, 10),
     },
     openGraph: extractor.og,
+    twitterCard: extractor.twitterCard,
     schemaTypes: [...new Set(extractor.schemaTypes)],
     schemaParseErrors: extractor.jsonLdParseErrors,
     wordCount,
@@ -515,17 +654,25 @@ export async function onRequestGet(context) {
     passed: audit.passed,
     title: auditData.title,
     title_length: auditData.title ? auditData.title.length : 0,
+    lang: auditData.lang,
+    doctype: auditData.doctype,
     meta_description: auditData.metaDescription,
     meta_description_length: auditData.metaDescription ? auditData.metaDescription.length : 0,
     canonical: auditData.canonical,
+    robots_meta: auditData.robotsMeta,
+    viewport: auditData.viewport ? '[present]' : null,
+    favicon_count: auditData.favicon?.length || 0,
+    hreflangs: auditData.hreflangs?.length || 0,
     headings: plan === 'free' ? { h1: auditData.headings.h1 } : auditData.headings,
     images: auditData.images,
     word_count: auditData.wordCount,
     ...(plan !== 'free' && {
       links: auditData.links,
       open_graph: auditData.openGraph,
+      twitter_card: auditData.twitterCard,
+      hreflangs_full: auditData.hreflangs,
+      favicons: auditData.favicon,
       schema_types: auditData.schemaTypes,
-      robots_meta: auditData.robotsMeta,
       meta_keywords: auditData.metaKeywords,
       fetch_time_ms: auditData.fetchTimeMs,
       html_size_kb: auditData.htmlSizeKb,
@@ -568,4 +715,17 @@ export async function onRequestOptions() {
       'Access-Control-Max-Age': '86400',
     },
   });
+}
+
+// Dual-export: expose helpers for Node.js test runner
+if (typeof module !== 'undefined') {
+  module.exports = {
+    scoresSEO,
+    cacheKey,
+    extractHeadingsFromHTML,
+    extractBodyText,
+    getKeywordDensity,
+    MAX_HTML_BYTES,
+    HeadExtractor,
+  };
 }

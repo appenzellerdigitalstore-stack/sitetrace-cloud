@@ -107,6 +107,104 @@ function paragraphUniformity(text) {
 }
 
 // ---------------------------------------------------------------------
+// Language detection (lightweight heuristic)
+// ---------------------------------------------------------------------
+
+const EN_STOPWORDS = new Set(['the','a','an','is','are','was','were','and','or','but','if','then','this','that','these','those','have','has','had','do','does','did','will','would','should','could','of','in','on','at','to','for','with','from','by','as','be','been','being','i','you','he','she','it','we','they','me','him','her','us','them','my','your','his','its','our','their']);
+
+const ES_STOPWORDS = new Set(['el','la','los','las','un','una','unos','unas','y','o','u','pero','si','de','del','en','a','por','para','con','sin','sobre','entre','es','son','fue','fueron','ha','han','que','se','me','te','mi','tu','su','nuestro']);
+
+function detectLanguage(text) {
+  const words = text.toLowerCase().replace(/[^a-záéíóúñ\s]/gi, ' ').split(/\s+/).filter(Boolean);
+  if (words.length === 0) return { code: 'unknown', confidence: 0, note: 'no text' };
+
+  // Script detection (rough)
+  let cyrillic = 0, han = 0, arabic = 0, latin = 0, devanagari = 0;
+  for (const ch of text) {
+    if (/[\u0400-\u04FF]/.test(ch)) cyrillic++;
+    else if (/[\u4E00-\u9FFF]/.test(ch)) han++;
+    else if (/[\u0600-\u06FF]/.test(ch)) arabic++;
+    else if (/[\u0900-\u097F]/.test(ch)) devanagari++;
+    else if (/[A-Za-z\u00C0-\u024F]/.test(ch)) latin++;
+  }
+  const total = cyrillic + han + arabic + latin + devanagari;
+  if (total === 0) return { code: 'unknown', confidence: 0, note: 'no characters' };
+  if (han / total > 0.5) return { code: 'zh', name: 'Chinese (Simplified/Traditional)', confidence: 0.95, script: 'han' };
+  if (cyrillic / total > 0.5) return { code: 'ru', name: 'Russian', confidence: 0.7, script: 'cyrillic', note: 'heuristic only — Cyrillic-script variants not disambiguated' };
+  if (arabic / total > 0.5) return { code: 'ar', name: 'Arabic', confidence: 0.9, script: 'arabic' };
+  if (devanagari / total > 0.5) return { code: 'hi', name: 'Hindi', confidence: 0.85, script: 'devanagari' };
+
+  // Latin: English vs Spanish by stopword count
+  let en = 0, es = 0;
+  for (const w of words) {
+    if (EN_STOPWORDS.has(w)) en++;
+    if (ES_STOPWORDS.has(w)) es++;
+  }
+  const enRatio = en / words.length;
+  const esRatio = es / words.length;
+  if (enRatio > esRatio && enRatio > 0.05) return { code: 'en', name: 'English', confidence: Math.min(0.95, enRatio * 5), script: 'latin' };
+  if (esRatio > enRatio && esRatio > 0.05) return { code: 'es', name: 'Spanish', confidence: Math.min(0.95, esRatio * 5), script: 'latin' };
+  return { code: 'latin_unspecified', name: 'Latin (unspecified)', confidence: 0.3, script: 'latin', note: 'could be English, Spanish, French, German, Italian, etc. — heuristic only' };
+}
+
+// Heuristic check: AI detector signals are calibrated for English. Other
+// languages produce low signal-to-noise, so we say so explicitly.
+function detectorSupportsLanguage(languageCode) {
+  return ['en', 'en-unknown', 'unknown'].includes(languageCode) || languageCode.startsWith('en');
+}
+
+function languageCaveat(languageCode) {
+  if (languageCode === 'en') return null;
+  if (languageCode && languageCode.startsWith('en')) return null;
+  return `Detection signals are calibrated for English. Results for ${languageCode} have lower accuracy — treat as a rough guide only.`;
+}
+
+// ---------------------------------------------------------------------
+// Per-paragraph scoring
+// ---------------------------------------------------------------------
+
+function analyzeParagraphs(text, full) {
+  // Split on double-newline (paragraph boundary), fall back to single newline
+  const rawParagraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter((p) => p.length >= 60);
+  if (rawParagraphs.length === 0) {
+    return { paragraphs: [], summary: 'no_paragraphs_detected' };
+  }
+  let totalScored = 0, totalProb = 0, flagged = 0, clean = 0;
+  const out = rawParagraphs.slice(0, 50).map((para, idx) => {
+    const stats = computeAIScore(para);
+    if (stats.error) {
+      return { index: idx, length: para.length, error: stats.error };
+    }
+    totalScored++;
+    totalProb += stats.ai_probability;
+    const label = stats.label;
+    if (['likely_ai', 'possibly_ai'].includes(label)) flagged++;
+    else clean++;
+    return {
+      index: idx,
+      length: para.length,
+      ai_probability: stats.ai_probability,
+      label,
+      signals: stats.signals,
+      preview: para.slice(0, 120).replace(/\s+/g, ' ').trim() + (para.length > 120 ? '…' : ''),
+    };
+  });
+  if (totalScored === 0) return { paragraphs: out, summary: 'no_scored_paragraphs' };
+  const mixed = out.filter((p) => p.label === 'uncertain').length;
+  return {
+    paragraphs: out,
+    summary: {
+      total_paragraphs: out.length,
+      scored: totalScored,
+      flagged_paragraphs: flagged,
+      clean_paragraphs: clean,
+      uncertain: mixed,
+      mean_ai_probability: Math.round(totalProb / totalScored),
+    },
+  };
+}
+
+// ---------------------------------------------------------------------
 // Score aggregator
 // ---------------------------------------------------------------------
 
@@ -183,20 +281,30 @@ function planMaxChars(plan) {
   }
 }
 
-function filterByPlan(plan, analysis) {
+function filterByPlan(plan, analysis, language, paragraphs) {
   const result = {
     ai_probability: analysis.ai_probability,
     label: analysis.label,
     word_count: analysis.word_count,
     sentence_count: analysis.sentence_count,
+    language: { code: language.code, name: language.name, confidence: language.confidence },
     plan,
   };
+  if (language.note) result.language.note = language.note;
+  const caveat = languageCaveat(language.code);
+  if (caveat) result.language.calibration_caveat = caveat;
   if (plan !== 'free') {
     result.signals = analysis.signals;
+    if (paragraphs && paragraphs.paragraphs && paragraphs.paragraphs.length > 0) {
+      result.paragraph_summary = paragraphs.summary;
+    }
   }
   if (plan === 'ultra' || plan === 'mega') {
     result.interpretation = INTERPRETATION_MAP[analysis.label];
     result.disclaimer = DISCLAIMER;
+    if (paragraphs && paragraphs.paragraphs && paragraphs.paragraphs.length > 0) {
+      result.paragraphs = paragraphs.paragraphs;
+    }
   }
   return result;
 }
@@ -266,7 +374,12 @@ export async function onRequestPost(context) {
     return jsonResponse({ error: 'analysis_failed', message: analysis.error }, 400);
   }
 
-  const result = filterByPlan(plan, analysis);
+  // Language detection (cheap — no external API call)
+  const language = detectLanguage(text);
+  // Per-paragraph scoring (more expensive — done only for paid tiers)
+  const paragraphs = (plan !== 'free') ? analyzeParagraphs(text, analysis) : { paragraphs: [], summary: 'free_tier_skipped' };
+
+  const result = filterByPlan(plan, analysis, language, paragraphs);
   return jsonResponse({ success: true, data: result }, 200);
 }
 
@@ -284,4 +397,27 @@ export async function onRequestOptions() {
       'Access-Control-Max-Age': '86400',
     },
   });
+}
+
+// Dual-export: expose helpers for Node.js test runner
+if (typeof module !== 'undefined') {
+  module.exports = {
+    getSentences,
+    getWords,
+    computeBurstiness,
+    computeTTR,
+    countAIPhrases,
+    passiveDensity,
+    paragraphUniformity,
+    analyzeParagraphs,
+    computeAIScore,
+    planMaxChars,
+    filterByPlan,
+    detectLanguage,
+    detectorSupportsLanguage,
+    languageCaveat,
+    AI_PHRASES,
+    EN_STOPWORDS,
+    ES_STOPWORDS,
+  };
 }

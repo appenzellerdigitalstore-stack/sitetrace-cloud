@@ -8,6 +8,9 @@
   <url><loc>https://api.sitetrace.it.com/preview/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://api.sitetrace.it.com/certs/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>https://api.sitetrace.it.com/pricing/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://api.sitetrace.it.com/privacy/</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://api.sitetrace.it.com/terms/</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://api.sitetrace.it.com/refunds/</loc><changefreq>yearly</changefreq><priority>0.4</priority></url>
   <url><loc>https://api.sitetrace.it.com/docs/</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>
   <url><loc>https://api.sitetrace.it.com/signup/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://api.sitetrace.it.com/status/</loc><changefreq>daily</changefreq><priority>0.5</priority></url>

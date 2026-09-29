@@ -15,6 +15,11 @@ const MAX_TEXT_BYTES = 256 * 1024;         // RDAP responses are < 100KB typical
 const KV_CACHE_TTL_SECONDS = 86400;        // 24h — domain registration data rarely changes
 
 // Fields redacted by registrars when privacy proxy is in use
+// Browser-like User-Agent required by rdap.org (Cloudflare blocks custom UAs)
+const BROWSER_UA =
+  'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 sitetrace-api/1.0';
+
 const REDACTION_TOKENS = new Set([
   '',
   'redacted',
@@ -183,7 +188,7 @@ export async function onRequestGet(context) {
     const resp = await fetch(`${RDAP_ORG_URL}/domain/${domain}`, {
       headers: {
         'Accept': 'application/rdap+json, application/json',
-        'User-Agent': 'sitetrace-api/1.0 (+https://api.sitetrace.it.com/api/rdap)',
+        'User-Agent': BROWSER_UA,
       },
       redirect: 'follow',
       signal: ctrl.signal,

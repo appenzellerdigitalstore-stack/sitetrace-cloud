@@ -81,9 +81,12 @@ const PLACEHOLDER_PNG = Uint8Array.from(
 // ---------------------------------------------------------------------
 async function takeScreenshot(env, url, opts) {
   // Lazy import so the function still works without @cloudflare/puppeteer
-  // installed locally (e.g. when running `wrangler pages dev` without
-  // the full browser stack).
-  const mod = await import('@cloudflare/puppeteer');
+  // installed locally. The module name is built at runtime (not a
+  // string literal) so wrangler's bundler doesn't try to resolve it
+  // at build time. The Cloudflare runtime resolves it from the
+  // Browser Rendering binding when the feature is enabled.
+  const moduleName = '@cloudflare/puppeteer';
+  const mod = await import(moduleName);
   const puppeteer = mod.default || mod;
   const browser = await puppeteer.launch(env.BROWSER);
   try {

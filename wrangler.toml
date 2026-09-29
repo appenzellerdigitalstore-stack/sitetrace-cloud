@@ -13,7 +13,10 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "."
 
 # No build step — site is plain static files + Functions. Cloudflare
-# Pages serves them as-is.
+# Pages serves them as-is. The Functions runtime resolves
+# @cloudflare/puppeteer at runtime when Browser Rendering is enabled
+# in the dashboard; we deploy with --no-bundle so wrangler doesn't
+# try to bundle the import.
 
 # ---------------------------------------------------------------------
 # D1 database — users, API keys, usage, rate-limits

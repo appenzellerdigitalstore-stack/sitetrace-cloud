@@ -104,153 +104,131 @@ class HeadExtractor {
     this.jsonLdParseErrors = 0;
   }
 
-  // Collect all the things HTMLRewriter can extract in streaming fashion
+  // Collect all the things HTMLRewriter can extract in streaming fashion.
+  // CF Workers HTMLRewriter does NOT support composing sub-rewriters via
+  // `.on(otherRewriter)` — `.on()` only accepts a string selector + handlers.
+  // The previous code chained sub-rewriters via `.on(htmlEls)` etc. which
+  // threw at buildRewriter() time and surfaced as a 500 with error 1101.
+  // Now we use a single HTMLRewriter with chained `.on(selector, handlers)`
+  // calls, matching the pattern in schema-detector.js (which works).
   buildRewriter(baseHostname) {
     const self = this;
+    const rw = new HTMLRewriter();
 
-    // Title
-    const titleEl = new HTMLRewriter()
-      .on('title', {
-        text(t) {
-          if (self.title === null) self.title = '';
-          self.title += t.text;
-        },
-      });
+    // <html lang="...">
+    rw.on('html', {
+      element(el) {
+        if (!self.lang) self.lang = el.getAttribute('lang') || null;
+      },
+    });
 
-    // Meta tags
-    const metaEls = new HTMLRewriter()
-      .on('meta', {
-        element(el) {
-          const name = (el.getAttribute('name') || '').toLowerCase();
-          const prop = (el.getAttribute('property') || '').toLowerCase();
-          const content = el.getAttribute('content') || '';
-          if (!content) return;
-          if (name === 'description' && !self.metaDescription) self.metaDescription = content;
-          else if (name === 'keywords' && !self.metaKeywords) self.metaKeywords = content;
-          else if (name === 'robots' && !self.robotsMeta) self.robotsMeta = content;
-          else if (name === 'viewport' && !self.viewport) self.viewport = content;
-          else if (prop.startsWith('og:')) self.og[prop.slice(3)] = content;
-          else if (prop.startsWith('twitter:') || name.startsWith('twitter:')) self.twitterCard[prop.startsWith('twitter:') ? prop.slice(8) : name.slice(8)] = content;
-        },
-      });
+    // <title>
+    rw.on('title', {
+      text(t) {
+        if (self.title === null) self.title = '';
+        self.title += t.text;
+      },
+    });
 
-    // HTML tag (capture lang attribute)
-    const htmlEls = new HTMLRewriter()
-      .on('html', {
-        element(el) {
-          if (!self.lang) self.lang = el.getAttribute('lang') || null;
-        },
-      });
+    // <meta name="..."> + <meta property="..."> (description, keywords, robots,
+    // viewport, og:*, twitter:*)
+    rw.on('meta', {
+      element(el) {
+        const name = (el.getAttribute('name') || '').toLowerCase();
+        const prop = (el.getAttribute('property') || '').toLowerCase();
+        const content = el.getAttribute('content') || '';
+        if (!content) return;
+        if (name === 'description' && !self.metaDescription) self.metaDescription = content;
+        else if (name === 'keywords' && !self.metaKeywords) self.metaKeywords = content;
+        else if (name === 'robots' && !self.robotsMeta) self.robotsMeta = content;
+        else if (name === 'viewport' && !self.viewport) self.viewport = content;
+        else if (prop.startsWith('og:')) self.og[prop.slice(3)] = content;
+        else if (prop.startsWith('twitter:') || name.startsWith('twitter:')) {
+          self.twitterCard[prop.startsWith('twitter:') ? prop.slice(8) : name.slice(8)] = content;
+        }
+      },
+    });
 
-    // Link tags (favicon, hreflang)
-    const linkElsForHead = new HTMLRewriter()
-      .on('link', {
-        element(el) {
-          const rel = (el.getAttribute('rel') || '').toLowerCase();
-          const href = el.getAttribute('href') || '';
-          if (!href) return;
-          if (rel.includes('icon')) self.favicon.push(href);
-          if (rel.includes('hreflang')) {
-            const lang = el.getAttribute('hreflang') || '';
-            if (lang) self.hreflangs.push(`${lang} → ${href}`);
+    // <link rel="icon"> and <link rel="...hreflang...">
+    rw.on('link', {
+      element(el) {
+        const rel = (el.getAttribute('rel') || '').toLowerCase();
+        const href = el.getAttribute('href') || '';
+        if (!href) return;
+        if (rel.includes('icon')) self.favicon.push(href);
+        if (rel.includes('hreflang')) {
+          const lang = el.getAttribute('hreflang') || '';
+          if (lang) self.hreflangs.push(`${lang} → ${href}`);
+        }
+      },
+    });
+
+    // <link rel="canonical"> (separate selector so it wins over generic <link>)
+    rw.on('link[rel="canonical"]', {
+      element(el) {
+        if (!self.canonical) self.canonical = el.getAttribute('href');
+      },
+    });
+
+    // <script type="application/ld+json"> — accumulate text, parse on </script>
+    rw.on('script[type="application/ld+json"]', {
+      text(t) {
+        self._jsonldBuffer = (self._jsonldBuffer || '') + t.text;
+      },
+      end() {
+        if (!self._jsonldBuffer) return;
+        try {
+          const parsed = JSON.parse(self._jsonldBuffer);
+          const items = Array.isArray(parsed) ? parsed : [parsed];
+          for (const item of items) {
+            const type = item['@type'] || (Array.isArray(item['@type']) ? item['@type'][0] : null);
+            if (type) self.schemaTypes.push(type);
           }
-        },
-      });
+        } catch (_) {
+          self.jsonLdParseErrors += 1;
+        }
+        self._jsonldBuffer = '';
+      },
+    });
 
-    // Canonical link
-    const canonicalEl = new HTMLRewriter()
-      .on('link[rel="canonical"]', {
-        element(el) {
-          if (!self.canonical) self.canonical = el.getAttribute('href');
-        },
-      });
-
-    // JSON-LD schema
-    const jsonLdEl = new HTMLRewriter()
-      .on('script[type="application/ld+json"]', {
-        text(t) {
-          // Accumulate text until end tag; we'll parse on done
-          self._jsonldBuffer = (self._jsonldBuffer || '') + t.text;
-        },
-        end(end) {
-          if (!self._jsonldBuffer) return;
-          try {
-            const parsed = JSON.parse(self._jsonldBuffer);
-            const items = Array.isArray(parsed) ? parsed : [parsed];
-            for (const item of items) {
-              const type = item['@type'] || (Array.isArray(item['@type']) ? item['@type'][0] : null);
-              if (type) self.schemaTypes.push(type);
-            }
-          } catch (_) {
-            self.jsonLdParseErrors += 1;
+    // <img> — alt-text coverage
+    rw.on('img', {
+      element(el) {
+        self.images.total += 1;
+        const alt = el.getAttribute('alt');
+        if (alt && alt.trim() !== '') {
+          self.images.with_alt += 1;
+        } else {
+          self.images.missing_alt += 1;
+          if (self.images.samples.length < 5) {
+            self.images.samples.push({ src: el.getAttribute('src') || null, alt: null });
           }
-          self._jsonldBuffer = '';
-        },
-      });
+        }
+      },
+    });
 
-    // Headings
-    const headings = { h1: 'h1', h2: 'h2', h3: 'h3', h4: 'h4', h5: 'h5', h6: 'h6' };
-    const headingEls = new HTMLRewriter();
-    for (const [key, tag] of Object.entries(headings)) {
-      headingEls.on(tag, {
-        text(t) {
-          self[key] = self[key] || [];
-          if (self[key].length < 1) {
-            const last = self[key][self[key].length - 1];
-            self[key][self[key].length - 1] = (last || '') + t.text;
-          }
-        },
-        element(el) {
-          if (!self[key]) self[key] = [];
-        },
-      });
-    }
-    // The heading text capture above isn't quite right for streaming
-    // (each text() call is per-chunk). We re-parse headings from the
-    // body HTML after rewriter runs (cheerio-equivalent via regex below).
-
-    // Images + links — collected by HTMLRewriter for accurate attribute reads
-    const imageEls = new HTMLRewriter()
-      .on('img', {
-        element(el) {
-          self.images.total += 1;
-          const alt = el.getAttribute('alt');
-          if (alt && alt.trim() !== '') {
-            self.images.with_alt += 1;
+    // <a href="..."> — internal vs external link inventory
+    rw.on('a[href]', {
+      element(el) {
+        const href = el.getAttribute('href') || '';
+        if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+        try {
+          const resolved = new URL(href, baseHostname);
+          if (resolved.hostname === new URL(baseHostname).hostname) {
+            self.linksInternal.add(resolved.href);
           } else {
-            self.images.missing_alt += 1;
-            if (self.images.samples.length < 5) {
-              self.images.samples.push({ src: el.getAttribute('src') || null, alt: null });
-            }
+            self.linksExternal.add(resolved.href);
           }
-        },
-      });
+        } catch (_) { /* skip invalid hrefs */ }
+      },
+    });
 
-    const aLinkEls = new HTMLRewriter()
-      .on('a[href]', {
-        element(el) {
-          const href = el.getAttribute('href') || '';
-          if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
-          try {
-            const resolved = new URL(href, baseHostname);
-            if (resolved.hostname === new URL(baseHostname).hostname) {
-              self.linksInternal.add(resolved.href);
-            } else {
-              self.linksExternal.add(resolved.href);
-            }
-          } catch (_) { /* skip invalid hrefs */ }
-        },
-      });
+    // Note: heading text is re-parsed via regex from the raw HTML after
+    // the rewriter runs (extractHeadingsFromHTML below). HTMLRewriter's
+    // text() callback fires per text-chunk, which doesn't accumulate well
+    // across child elements (e.g. <h1><span>foo</span> bar</h1>).
 
-    // Chain all rewriters together
-    return titleEl.on(htmlEls)
-      .on(metaEls)
-      .on(canonicalEl)
-      .on(linkElsForHead)
-      .on(jsonLdEl)
-      .on(headingEls)
-      .on(imageEls)
-      .on(aLinkEls);
+    return rw;
   }
 }
 
@@ -596,9 +574,7 @@ export async function onRequestGet(context) {
   const extractor = new HeadExtractor();
   const rewriter = extractor.buildRewriter(urlObj.href);
   try {
-    await new Response(html).body
-      .pipeThrough(new HTMLRewriter().transform(rewriter))
-      .arrayBuffer();
+    await rewriter.transform(new Response(html)).arrayBuffer();
   } catch (e) {
     // HTMLRewriter failures are non-fatal — regex fallbacks below still work
     console.error('HTMLRewriter failed:', e?.message || e);

@@ -27,10 +27,10 @@ pages_build_output_dir = "."
 # Until that's done, the API will return 503 from /api/* and the
 # static site will still serve.
 # ---------------------------------------------------------------------
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "sitetrace-api"
-# database_id = "REPLACE_AFTER_D1_CREATE"
+[[d1_databases]]
+binding = "DB"
+database_name = "sitetrace-api"
+database_id = "13dc30d3-f565-481e-834b-6e5c5a43d43a"
 
 # ---------------------------------------------------------------------
 # KV namespace — KV is used for the SSL/CT 24h cache.

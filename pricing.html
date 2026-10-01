@@ -59,10 +59,10 @@
 
         <div class="price-card">
           <div class="name">Pro</div>
-          <p class="price">$49<small> / month</small></p>
+          <p class="price">$30<small> / month</small></p>
           <ul>
             <li>30,000 calls/day</li>
-            <li>All 6 APIs</li>
+            <li>All APIs</li>
             <li>Priority email support</li>
             <li>Status page + changelog feed</li>
           </ul>
@@ -71,18 +71,18 @@
 
         <div class="price-card">
           <div class="name">Volume</div>
-          <p class="price">$199<small> / month</small></p>
+          <p class="price">Contact us</p>
           <ul>
-            <li>200,000 calls/day</li>
-            <li>All 6 APIs</li>
+            <li>200,000+ calls/day</li>
+            <li>All APIs</li>
             <li>Dedicated support channel</li>
             <li>99.9% uptime SLA</li>
           </ul>
-          <a href="#" onclick="checkout('volume'); return false;" class="btn">Subscribe</a>
+          <a href="mailto:billing@sitetrace.it.com?subject=Volume%20plan%20inquiry" class="btn">Contact us</a>
         </div>
       </div>
       <p class="muted center" style="margin-top: 24px; font-size: 14px;">
-        Need more? Hit 200k/day and still want more — write to <code>billing@sitetrace.it.com</code> for a custom volume deal.
+        Need more than Pro? Write to <code>billing@sitetrace.it.com</code> for a custom volume deal.
       </p>
     </section>
 
@@ -136,41 +136,68 @@
     </div>
   </footer>
 
-  <script>
-    // Paddle checkout integration
-    // Paddle.js loaded from the Paddle CDN; the price IDs are set in
-    // the Paddle dashboard and matched in functions/api/paddle-webhook.js
-    async function checkout(plan) {
-      const email = prompt('Enter your email to check out:');
-      if (!email) return;
-      // Open Paddle.js overlay with the right price + passthrough
-      // (passthrough carries the email + plan to the webhook so we
-      // can match the subscription back to the user).
-      try {
-        if (window.Paddle) {
-          const priceId = {
-            hobby:  window.PADDLE_PRICE_HOBBY  || 'pri_hobby_placeholder',
-            pro:    window.PADDLE_PRICE_PRO    || 'pri_pro_placeholder',
-            volume: window.PADDLE_PRICE_VOLUME || 'pri_volume_placeholder',
-          }[plan];
-          window.Paddle.Checkout.open({
-            price: priceId,
-            quantity: 1,
-            passthrough: JSON.stringify({ email: email, plan: plan }),
-            successUrl: 'https://api.sitetrace.it.com/dashboard?welcome=1',
-          });
-        } else {
-          alert('Checkout is loading — refresh the page in a moment. If this keeps happening, the Paddle price IDs are not yet configured.');
-        }
-      } catch (e) {
-        alert('Checkout error: ' + e.message);
-      }
-    }
-  </script>
   <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
   <script>
+    // =================================================================
+    // Paddle.js v2 setup — sandbox now, live after account verification.
+    // Client-side token + price IDs are intentionally committed to git
+    // (they're public-by-design — embedded in the browser anyway).
+    // =================================================================
+    const PADDLE_ENV   = 'sandbox';      // flip to 'production' for live
+    const PADDLE_TOKEN = 'test_fe6ada9d2948324a7eab2250ee9'; // sandbox client-side token
+    const PRICE_IDS = {
+      hobby:  'pri_01m3tceygyeetg9smeapr06ae1',   // $9.99/mo USD
+      pro:    'pri_01m3tcq9wmrbpn6ps3wdvkd5rc',   // $30/mo USD
+      // volume tier is archived — emails billing@sitetrace.it.com instead
+    };
+
     if (window.Paddle) {
-      window.Paddle.Environment.set('production');
+      window.Paddle.Environment.set(PADDLE_ENV);
+      window.Paddle.Initialize({ token: PADDLE_TOKEN });
+
+      // v2 events — log Paddle's own diagnostics to the browser console
+      // so checkout errors are easier to triage without DevTools fiddling.
+      window.Paddle.Checkout.on('checkout.error', (err) => {
+        console.error('[paddle] checkout.error', err);
+      });
+      window.Paddle.Checkout.on('checkout.completed', (data) => {
+        console.log('[paddle] checkout.completed', data);
+      });
+    } else {
+      console.error('[paddle] window.Paddle missing — cdn.paddle.com blocked?');
+    }
+
+    // =================================================================
+    // Pricing button handler — opens the Paddle overlay.
+    // passthrough carries email + plan back through the webhook so we
+    // can match a paid subscription to the user that just signed up.
+    // =================================================================
+    async function checkout(plan) {
+      if (!PRICE_IDS[plan]) {
+        alert('That plan is not currently available. Email billing@sitetrace.it.com for help.');
+        return;
+      }
+      const email = prompt('Enter your email to check out:');
+      if (!email) return;
+
+      try {
+        if (!window.Paddle?.Checkout) {
+          alert('Checkout is still loading — refresh the page in a moment.');
+          return;
+        }
+        window.Paddle.Checkout.open({
+          items: [{ priceId: PRICE_IDS[plan], quantity: 1 }],
+          customer: { email },
+          customData: { email, plan },  // mirrored in passthrough for the webhook
+          passthrough: JSON.stringify({ email, plan }),
+          settings: {
+            successUrl: 'https://api.sitetrace.it.com/dashboard?welcome=1',
+          },
+        });
+      } catch (e) {
+        alert('Checkout error: ' + e.message);
+        console.error('[paddle] Checkout.open threw', e);
+      }
     }
   </script>
 </body>

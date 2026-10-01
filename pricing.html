@@ -54,7 +54,7 @@
             <li>Email support</li>
             <li>Per-endpoint usage stats</li>
           </ul>
-          <a href="/dashboard?next=/pricing&plan=hobby" class="btn btn-primary">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=hobby" class="btn btn-primary" onclick="event.preventDefault(); checkout('hobby'); return false;">Subscribe</a>
         </div>
 
         <div class="price-card">
@@ -66,7 +66,7 @@
             <li>Priority email support</li>
             <li>Status page + changelog feed</li>
           </ul>
-          <a href="/dashboard?next=/pricing&plan=pro" class="btn">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=pro" class="btn" onclick="event.preventDefault(); checkout('pro'); return false;">Subscribe</a>
         </div>
       </div>
     </section>

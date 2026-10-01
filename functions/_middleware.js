@@ -34,6 +34,10 @@ const PUBLIC_PATHS = new Set([
   '/api/preview',
   '/api/certs',
   '/api/shot',
+  // Plan-change endpoint: auth happens in the endpoint (key in body),
+  // not via the middleware's Bearer header, so the quota counter doesn't
+  // tick for a subscription update. See functions/api/change-plan.js.
+  '/api/change-plan',
 ]);
 
 // Static-asset paths under /api/ (e.g. swagger.json) — also public.

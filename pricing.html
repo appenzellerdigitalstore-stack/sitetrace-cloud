@@ -54,7 +54,7 @@
             <li>Email support</li>
             <li>Per-endpoint usage stats</li>
           </ul>
-          <a href="/dashboard?next=/pricing&plan=hobby" class="btn btn-primary" onclick="event.preventDefault(); checkout('hobby'); return false;">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=hobby" class="btn btn-primary" data-plan="hobby" onclick="event.preventDefault(); checkout('hobby'); return false;">Subscribe</a>
         </div>
 
         <div class="price-card">
@@ -66,7 +66,7 @@
             <li>Priority email support</li>
             <li>Status page + changelog feed</li>
           </ul>
-          <a href="/dashboard?next=/pricing&plan=pro" class="btn" onclick="event.preventDefault(); checkout('pro'); return false;">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=pro" class="btn" data-plan="pro" onclick="event.preventDefault(); checkout('pro'); return false;">Subscribe</a>
         </div>
       </div>
     </section>
@@ -153,9 +153,17 @@
     }
 
     // =================================================================
-    // Pricing button handler — opens the Paddle overlay.
-    // passthrough carries email + plan back through the webhook so we
-    // can match a paid subscription to the user that just signed up.
+    // Pricing button handler.
+    //
+    // For NEW subscriptions (free user): opens Paddle.Checkout, which
+    // creates a new subscription + collects the first month's payment.
+    //
+    // For EXISTING subscribers (Hobby -> Pro): routes through our
+    // /api/change-plan endpoint, which calls Paddle's REST API directly
+    // (PATCH /subscriptions/{id}) with proration_billing_mode. That's
+    // the correct Paddle pattern for plan changes — Paddle.js Checkout
+    // is for NEW subs only and silently fails ("Something went wrong")
+    // when you try to pass a subscriptionId inside items[].
     // =================================================================
     async function checkout(plan) {
       if (!PRICE_IDS[plan]) {
@@ -163,9 +171,6 @@
         return;
       }
 
-      // The dashboard already gates Subscribe — we expect a logged-in user
-      // here (bounced back from /dashboard?next=/pricing&plan=X). If somehow
-      // we got here without a key, send them through the sign-in flow first.
       const key = localStorage.getItem('sitetrace_key');
       if (!key) {
         const next = location.pathname + '?plan=' + encodeURIComponent(plan);
@@ -173,15 +178,15 @@
         return;
       }
 
-      // Pull the user's email from /api/account so we don't need a prompt.
-      // (The email is the one Paddle sees at checkout, the webhook matches
-      // the D1 user by this email, and the receipt is sent here.)
-      let userEmail, paddleSubscriptionId;
+      // Fetch account state. We need email + paddle_subscription_id +
+      // current plan to decide which checkout path to use.
+      let userEmail, paddleSubscriptionId, currentPlan;
       try {
         const r = await fetch('/api/account?key=' + encodeURIComponent(key));
         const d = await r.json();
         userEmail = d.user && d.user.email;
         paddleSubscriptionId = d.user && d.user.paddle_subscription_id;
+        currentPlan = d.user && d.user.plan;
         if (!userEmail) throw new Error('no email on account');
       } catch (e) {
         alert('Could not load your account. Please sign in again.');
@@ -190,21 +195,40 @@
         return;
       }
 
+      // ----- EXISTING SUBSCRIBER: change plan via API (proration) -----
+      if (paddleSubscriptionId && currentPlan && currentPlan !== 'free') {
+        const btn = document.querySelector(`[data-plan="${plan}"]`);
+        const originalLabel = btn ? btn.textContent : null;
+        if (btn) { btn.disabled = true; btn.textContent = 'Changing…'; }
+        try {
+          const r = await fetch('/api/change-plan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, plan }),
+          });
+          const d = await r.json();
+          if (!r.ok || !d.ok) {
+            throw new Error(d.message || d.error || 'change-plan failed');
+          }
+          // Prorated charge already applied to the saved card. Bounce
+          // to the dashboard so the user sees their new plan immediately.
+          location.href = '/dashboard?welcome=1&plan=' + encodeURIComponent(plan);
+          return;
+        } catch (e) {
+          alert('Plan change failed: ' + (e.message || 'unknown error'));
+          if (btn) { btn.disabled = false; btn.textContent = originalLabel; }
+          return;
+        }
+      }
+
+      // ----- NEW SUBSCRIBER: open Paddle checkout -----
       try {
         if (!window.Paddle?.Checkout) {
           alert('Checkout is still loading — refresh the page in a moment.');
           return;
         }
-        // If this user already has a Paddle subscription (Hobby→Pro upgrade),
-        // pass subscriptionId so Paddle forces a plan change with proration
-        // — otherwise sandbox can create a SECOND subscription alongside the
-        // first, charging full price AND leaving the old one running.
-        const item = { priceId: PRICE_IDS[plan], quantity: 1 };
-        if (paddleSubscriptionId) {
-          item.subscriptionId = paddleSubscriptionId;
-        }
         window.Paddle.Checkout.open({
-          items: [item],
+          items: [{ priceId: PRICE_IDS[plan], quantity: 1 }],
           customer: { email: userEmail },
           customData: { email: userEmail, plan },
           passthrough: JSON.stringify({ email: userEmail, plan }),
@@ -217,6 +241,29 @@
         console.error('[paddle] Checkout.open threw', e);
       }
     }
+
+    // Update Subscribe button labels: "Subscribe" for free users, "Upgrade"
+    // for paid users (so they know they're upgrading, not buying a new sub).
+    // Also swap the data-plan attribute so the click handler still works.
+    (async function updateButtonLabels() {
+      const key = localStorage.getItem('sitetrace_key');
+      if (!key) return; // anonymous — buttons stay "Subscribe"
+      try {
+        const r = await fetch('/api/account?key=' + encodeURIComponent(key));
+        if (!r.ok) return;
+        const d = await r.json();
+        const plan = (d.user && d.user.plan) || 'free';
+        if (plan === 'free') return; // free user — Subscribe is correct
+        // Paid user — swap "Subscribe" to "Upgrade to <plan>"
+        const labels = { hobby: 'Hobby', pro: 'Pro', volume: 'Volume' };
+        document.querySelectorAll('[data-plan]').forEach((btn) => {
+          const targetPlan = btn.dataset.plan;
+          if (labels[targetPlan]) {
+            btn.textContent = `Upgrade to ${labels[targetPlan]}`;
+          }
+        });
+      } catch (_) { /* leave labels as-is on error */ }
+    })();
 
     // Auto-fire checkout when arriving via the dashboard bounce —
     // /pricing?plan=hobby (after sign-in) should open Paddle immediately.

@@ -10,7 +10,7 @@
 // Auth: shared middleware.
 // =====================================================================
 
-const DOH = 'https://cloudflare-dns.com/dns-query';
+const DOH = 'https://1.1.1.1/dns-query';
 const TIMEOUT_MS = 6000;
 
 const DKIM_SELECTORS = [

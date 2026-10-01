@@ -40,21 +40,16 @@ id = "34a24f07e7e140948b4491df07f0d62d"
 # ---------------------------------------------------------------------
 # Paddle Billing integration
 #
-# Source of truth for ALL Paddle env vars is the CF dashboard
-# (Workers & Pages → sitetrace-api → Settings → Variables and secrets).
-# Product IDs and secrets are intentionally NOT declared here so the
-# dashboard isn't greyed out, and so a single git commit can't leak
-# the live (post-sandbox) product IDs or webhook secret.
-#
-# Currently stored in dashboard:
-#   Plaintext — PADDLE_PRODUCT_HOBBY, PADDLE_PRODUCT_PRO
-#               (PADDLE_PRODUCT_VOLUME was deleted — Volume tier is
-#                archived; unarchive + re-add when Workers Paid is on)
-#   Secrets   — PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET
+# Product IDs (Paddle sandbox) live in [vars] below so they ship with
+# the deploy and the CF Pages API's lack of a var-create endpoint is
+# a non-issue. Secrets stay in the CF dashboard (never commit them).
 #
 # Sandbox ↔ live flip: rotate the two secrets in the dashboard and
-# update the two plaintext product IDs in the dashboard. No code change.
+# update the two product IDs in [vars] below. No other code change.
 # ---------------------------------------------------------------------
+[vars]
+PADDLE_PRODUCT_HOBBY = "pro_01m3tc3y6p4sf9xn01zknr03jp"
+PADDLE_PRODUCT_PRO   = "pro_01m3tchdmcwqdpkh6tkarwacar"
 
 # ---------------------------------------------------------------------
 # Browser Rendering — headless Chrome for the screenshot API

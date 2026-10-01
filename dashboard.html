@@ -181,8 +181,17 @@ with open('shot.png', 'wb') as f:
           localStorage.setItem('sitetrace_key', d.user.api_key);
           // After sign-in: bounce to ?next= if present (e.g. /pricing?plan=hobby),
           // else preserve ?welcome=1 from Paddle redirect.
+          // Preserve the ?plan=X param the same way the main bounce does —
+          // if localStorage was cleared, this is the path that fires, and
+          // we want /pricing to still auto-fire the right checkout.
           if (nextUrl) {
-            location.replace(nextUrl);
+            const plan = params.get('plan');
+            // Don't double-append if nextUrl already includes the plan.
+            const alreadyHasPlan = /[?&]plan=/.test(nextUrl);
+            const target = (plan && !alreadyHasPlan)
+              ? `${nextUrl}${nextUrl.includes('?') ? '&' : '?'}plan=${encodeURIComponent(plan)}`
+              : nextUrl;
+            location.replace(target);
           } else if (params.get('welcome')) {
             location.replace('/dashboard?welcome=1');
           } else {

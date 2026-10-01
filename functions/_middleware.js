@@ -18,11 +18,22 @@ const PLANS = {
   volume: { daily: 200000, label: 'Volume' },
 };
 
-// Public paths — auth-free. Used for signup, login, webhooks, etc.
+// Public paths — auth-free. Used for signup, login, webhooks, status probes, etc.
 const PUBLIC_PATHS = new Set([
   '/api/signup',
   '/api/login',
   '/api/paddle-webhook',
+  // Status-page probes: these endpoints are read-only and cheap, and the
+  // /status page needs to hit them without an api_key. The quota cost of
+  // someone spamming these from outside is negligible (they hit upstream
+  // DoH/MX servers, not our D1 user table), so auth-free is fine.
+  '/api/email',
+  '/api/rdap',
+  '/api/ip',
+  '/api/headers',
+  '/api/preview',
+  '/api/certs',
+  '/api/shot',
 ]);
 
 // Static-asset paths under /api/ (e.g. swagger.json) — also public.

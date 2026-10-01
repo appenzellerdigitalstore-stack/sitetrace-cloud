@@ -107,13 +107,76 @@ with open('shot.png', 'wb') as f:
     const params = new URLSearchParams(location.search);
     const key = params.get('key') || localStorage.getItem('sitetrace_key') || '';
     if (!key) {
-      document.body.innerHTML = '<div class="container" style="padding:80px 0;text-align:center;"><h1>No key</h1><p>Open this page with <code>?key=stk_...</code> in the URL, or <a href="/signup/">sign up</a> to get one.</p></div>';
+      showRecoverForm();
     } else {
       localStorage.setItem('sitetrace_key', key);
       document.getElementById('key').textContent = key;
       document.getElementById('snip-curl').textContent = document.getElementById('snip-curl').textContent.replace('YOUR_KEY', key);
       load();
     }
+
+    // No-key recovery screen — email-only passwordless. Same /api/signup
+    // endpoint returns the existing api_key when the email is known, so
+    // a returning user can get back into the dashboard without remembering
+    // the key. Trades security for convenience (no email verification) —
+    // acceptable here because the api_key is a bearer token with a daily
+    // quota; a leaked email compromises only that one user's quota, not
+    // their identity. Mitigation: keep the existing IP rate-limit on the
+    // unauth path, and consider adding a captcha if abuse shows up.
+    function showRecoverForm() {
+      document.body.innerHTML = `
+        <div class="container" style="padding:80px 0;max-width:480px;text-align:center;">
+          <h1 style="margin-bottom:8px;">Sign in</h1>
+          <p class="muted" style="margin-bottom:24px;">Enter the email you signed up with — we'll send you back to your dashboard.</p>
+          <form id="recover-form" style="display:flex;gap:8px;">
+            <input type="email" id="recover-email" required placeholder="you@example.com"
+                   style="flex:1;padding:12px 14px;border-radius:8px;border:1px solid var(--border,#333);background:var(--bg-2,#1a1a1a);color:var(--fg,#eee);font-size:15px;" />
+            <button type="submit" class="btn btn-primary" id="recover-btn" style="padding:12px 20px;">Sign in</button>
+          </form>
+          <p id="recover-msg" class="muted" style="margin-top:16px;font-size:14px;"></p>
+          <p class="muted" style="margin-top:32px;font-size:13px;">No account yet? <a href="/signup/">Sign up</a> for a free key.</p>
+        </div>`;
+      const form = document.getElementById('recover-form');
+      const msg = document.getElementById('recover-msg');
+      const btn = document.getElementById('recover-btn');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = document.getElementById('recover-email').value.trim().toLowerCase();
+        if (!email) return;
+        btn.disabled = true;
+        btn.textContent = '…';
+        msg.textContent = '';
+        try {
+          const r = await fetch('/api/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+          });
+          const d = await r.json();
+          if (!d.ok || !d.user?.api_key) {
+            throw new Error(d.error || d.message || 'lookup failed');
+          }
+          localStorage.setItem('sitetrace_key', d.user.api_key);
+          // Preserve any ?welcome=1 flag from Paddle redirect
+          const qs = params.get('welcome') ? '?welcome=1' : '';
+          location.replace('/dashboard' + qs);
+        } catch (err) {
+          msg.textContent = '❌ ' + (err.message || 'something went wrong');
+          btn.disabled = false;
+          btn.textContent = 'Sign in';
+        }
+      });
+    }
+
+    // Real sign-out handler — clears the cached key and bounces to home.
+    // The link in the nav is just an <a href="/"> until we wire it up below.
+    document.querySelector('a[href="/"].btn')?.addEventListener('click', (e) => {
+      // Only intercept if we actually have a key cached
+      if (!localStorage.getItem('sitetrace_key')) return;
+      e.preventDefault();
+      localStorage.removeItem('sitetrace_key');
+      location.href = '/';
+    });
 
     async function load() {
       const r = await fetch('/api/account?key=' + encodeURIComponent(key));

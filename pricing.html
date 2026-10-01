@@ -134,6 +134,7 @@
       hobby:  'pri_01m3tceygyeetg9smeapr06ae1',   // $9.99/mo USD
       pro:    'pri_01m3tcq9wmrbpn6ps3wdvkd5rc',   // $30/mo USD
     };
+    const API_BASE = 'https://api.sitetrace.it.com';
 
     if (window.Paddle) {
       window.Paddle.Environment.set(PADDLE_ENV);
@@ -161,7 +162,7 @@
         alert('That plan is not currently available. Email billing@sitetrace.it.com for help.');
         return;
       }
-      const email = prompt('Enter your email to check out:');
+      const email = (prompt('Enter your email to check out:') || '').trim().toLowerCase();
       if (!email) return;
 
       try {
@@ -169,6 +170,24 @@
           alert('Checkout is still loading — refresh the page in a moment.');
           return;
         }
+
+        // Pre-signup: ensure a D1 row exists for this email BEFORE Paddle fires
+        // subscription.created. The webhook handler does findUserByEmail and
+        // silently exits if the user doesn't exist — without this step the
+        // upgrade never lands and the customer pays but stays on `free`.
+        const signupRes = await fetch(API_BASE + '/api/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const signup = await signupRes.json();
+        if (!signup.ok || !signup.user?.api_key) {
+          throw new Error((signup && signup.error) || 'pre-checkout signup failed');
+        }
+        // Stash the key so the dashboard picks it up on the post-payment redirect.
+        // localStorage matches what dashboard.html already reads on subsequent visits.
+        try { localStorage.setItem('sitetrace_key', signup.user.api_key); } catch (_) {}
+
         window.Paddle.Checkout.open({
           items: [{ priceId: PRICE_IDS[plan], quantity: 1 }],
           customer: { email },

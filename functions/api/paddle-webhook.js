@@ -110,15 +110,42 @@ async function verifyPaddleSignature(rawBody, headerValue, secret) {
 // DB helpers — narrow, webhook-specific
 // ---------------------------------------------------------------------
 async function findUserByEmail(db, email) {
+  if (!email) return null;
+  // Case-insensitive — Paddle customer email may differ in casing from the
+  // email the user typed into /api/signup (which we already lowercase in
+  // /api/signup, but be defensive here too).
+  const norm = email.trim().toLowerCase();
   return await db.prepare(
-    'SELECT id, email, api_key, plan, status FROM users WHERE email = ? LIMIT 1'
-  ).bind(email).first();
+    'SELECT id, email, api_key, plan, status, paddle_customer_id FROM users WHERE LOWER(email) = ? LIMIT 1'
+  ).bind(norm).first();
 }
 
 async function findUserByPaddleCustomer(db, paddleCustomerId) {
   return await db.prepare(
-    'SELECT id, email, api_key, plan, status FROM users WHERE paddle_customer_id = ? LIMIT 1'
+    'SELECT id, email, api_key, plan, status, paddle_customer_id FROM users WHERE paddle_customer_id = ? LIMIT 1'
   ).bind(paddleCustomerId).first();
+}
+
+// Try paddle_customer_id first (specific). Fall back to email — a freshly
+// signup'd user has paddle_customer_id = NULL until the first webhook
+// updates it, so onSubscriptionUpdated MUST be able to find them by email,
+// otherwise the very first subscription.updated event is a silent no-op
+// and the D1 row never gets upgraded.
+//
+// Side-effect: if found via email, we patch in paddle_customer_id + sub id
+// right now via applyPlanChange so future events find them by id.
+async function findUserForEvent(db, event) {
+  const customerId = event?.data?.customer_id;
+  if (customerId) {
+    const byCust = await findUserByPaddleCustomer(db, customerId);
+    if (byCust) return byCust;
+  }
+  const email = event?.data?.customer?.email;
+  if (email) {
+    const byEmail = await findUserByEmail(db, email);
+    if (byEmail) return byEmail;
+  }
+  return null;
 }
 
 async function applyPlanChange(db, user, event, plan, status, cancelAt) {
@@ -158,9 +185,12 @@ async function applyPlanChange(db, user, event, plan, status, cancelAt) {
 // subscription.created — customer just paid. user MUST already exist
 // (they hit /api/signup first, which created the D1 user row).
 async function onSubscriptionCreated(db, env, event) {
-  const customerEmail = event.data?.customer?.email;
-  if (!customerEmail) {
-    console.error('paddle-webhook: subscription.created missing customer.email');
+  const user = await findUserForEvent(db, event);
+  if (!user) {
+    console.error('paddle-webhook: subscription.created: no matching user', {
+      email: event.data?.customer?.email,
+      customer_id: event.data?.customer_id,
+    });
     return;
   }
   const items = event.data?.items || [];
@@ -170,21 +200,17 @@ async function onSubscriptionCreated(db, env, event) {
     console.error('paddle-webhook: subscription.created: unknown product_id', productId);
     return;
   }
-  const user = await findUserByEmail(db, customerEmail);
-  if (!user) {
-    console.error('paddle-webhook: subscription.created: no user with email', customerEmail);
-    return;
-  }
   // active subscription; not yet canceled
   await applyPlanChange(db, user, event, plan, 'active', null);
 }
 
 async function onSubscriptionUpdated(db, env, event) {
-  const customerId = event.data?.customer_id;
-  if (!customerId) return;
-  const user = await findUserByPaddleCustomer(db, customerId);
+  const user = await findUserForEvent(db, event);
   if (!user) {
-    console.error('paddle-webhook: subscription.updated: no user with paddle_customer_id', customerId);
+    console.error('paddle-webhook: subscription.updated: no matching user', {
+      email: event.data?.customer?.email,
+      customer_id: event.data?.customer_id,
+    });
     return;
   }
   const items = event.data?.items || [];
@@ -211,10 +237,14 @@ async function onSubscriptionUpdated(db, env, event) {
 // period end has passed, OR when the cancel_at < now check runs in the
 // middleware before charging a call).
 async function onSubscriptionCanceled(db, env, event) {
-  const customerId = event.data?.customer_id;
-  if (!customerId) return;
-  const user = await findUserByPaddleCustomer(db, customerId);
-  if (!user) return;
+  const user = await findUserForEvent(db, event);
+  if (!user) {
+    console.error('paddle-webhook: subscription.canceled: no matching user', {
+      email: event.data?.customer?.email,
+      customer_id: event.data?.customer_id,
+    });
+    return;
+  }
   const periodEnd = event.data?.current_billing_period?.ends_at || null;
   await applyPlanChange(db, user, event, user.plan, 'canceled', periodEnd);
 }

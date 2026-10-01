@@ -133,17 +133,23 @@ with open('shot.png', 'wb') as f:
     // their identity. Mitigation: keep the existing IP rate-limit on the
     // unauth path, and consider adding a captcha if abuse shows up.
     function showRecoverForm() {
+      // Unified "sign up or log in" screen — the /api/signup endpoint
+      // returns the existing api_key if the email is already in D1, so
+      // the same form handles both flows. No separate "sign up" vs
+      // "log in" paths to confuse new vs returning users.
       document.getElementById('app').innerHTML = `
         <div class="container" style="padding:80px 0;max-width:480px;text-align:center;">
-          <h1 style="margin-bottom:8px;">Sign in</h1>
-          <p class="muted" style="margin-bottom:24px;">Enter the email you signed up with${nextUrl ? ' — then we\'ll continue where you left off' : ''}.</p>
+          <h1 style="margin-bottom:8px;">Sign up or log in</h1>
+          <p class="muted" style="margin-bottom:24px;">Enter your email${nextUrl ? ' — we\'ll continue where you left off after' : ' — we\'ll create a new account, or sign you in if you already have one'}.</p>
           <form id="recover-form" style="display:flex;gap:8px;">
             <input type="email" id="recover-email" required placeholder="you@example.com"
                    style="flex:1;padding:12px 14px;border-radius:8px;border:1px solid var(--border,#333);background:var(--bg-2,#1a1a1a);color:var(--fg,#eee);font-size:15px;" />
-            <button type="submit" class="btn btn-primary" id="recover-btn" style="padding:12px 20px;">Sign in</button>
+            <button type="submit" class="btn btn-primary" id="recover-btn" style="padding:12px 20px;">Continue</button>
           </form>
           <p id="recover-msg" class="muted" style="margin-top:16px;font-size:14px;"></p>
-          <p class="muted" style="margin-top:32px;font-size:13px;">No account yet? <a href="/signup/">Sign up</a> for a free key.</p>
+          <p class="muted" style="margin-top:32px;font-size:13px;">
+            We don't send marketing emails. We only use this to recover your key if you lose it.
+          </p>
         </div>`;
       const form = document.getElementById('recover-form');
       const msg = document.getElementById('recover-msg');
@@ -178,7 +184,7 @@ with open('shot.png', 'wb') as f:
         } catch (err) {
           msg.textContent = '❌ ' + (err.message || 'something went wrong');
           btn.disabled = false;
-          btn.textContent = 'Sign in';
+          btn.textContent = 'Continue';
         }
       });
     }

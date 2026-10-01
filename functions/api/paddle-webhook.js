@@ -46,7 +46,7 @@
 // a tier).
 const PLANS = {
   free:   { daily: 100 },
-  hobby:  { daily: 1000 },
+  hobby:  { daily: 5000 },
   pro:    { daily: 30000 },
   volume: { daily: 200000 },
 };

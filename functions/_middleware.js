@@ -13,7 +13,7 @@
 
 const PLANS = {
   free:   { daily: 100,  label: 'Free'   },
-  hobby:  { daily: 1000, label: 'Hobby'  },
+  hobby:  { daily: 5000, label: 'Hobby'  },
   pro:    { daily: 30000, label: 'Pro'   },
   volume: { daily: 200000, label: 'Volume' },
 };

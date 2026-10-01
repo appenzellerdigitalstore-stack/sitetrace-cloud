@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Pricing — sitetrace API</title>
-  <meta name="description" content="Free tier is 100 calls/day, no signup. Paid plans from $9/mo for 1,000 calls/day. Cancel any time. Pay via PayPal." />
+  <meta name="description" content="Free tier is 100 calls/day, no signup. Paid plans from $9/mo for 5,000 calls/day. Cancel any time. Pay via PayPal." />
   <link rel="canonical" href="https://api.sitetrace.it.com/pricing/" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -49,8 +49,8 @@
           <div class="name">Hobby <span class="badge">most popular</span></div>
           <p class="price">$9<small> / month</small></p>
           <ul>
-            <li>1,000 calls/day</li>
-            <li>All 6 APIs</li>
+            <li>5,000 calls/day</li>
+            <li>All APIs</li>
             <li>Email support</li>
             <li>Per-endpoint usage stats</li>
           </ul>
@@ -68,22 +68,7 @@
           </ul>
           <a href="#" onclick="checkout('pro'); return false;" class="btn">Subscribe</a>
         </div>
-
-        <div class="price-card">
-          <div class="name">Volume</div>
-          <p class="price">Contact us</p>
-          <ul>
-            <li>200,000+ calls/day</li>
-            <li>All APIs</li>
-            <li>Dedicated support channel</li>
-            <li>99.9% uptime SLA</li>
-          </ul>
-          <a href="mailto:billing@sitetrace.it.com?subject=Volume%20plan%20inquiry" class="btn">Contact us</a>
-        </div>
       </div>
-      <p class="muted center" style="margin-top: 24px; font-size: 14px;">
-        Need more than Pro? Write to <code>billing@sitetrace.it.com</code> for a custom volume deal.
-      </p>
     </section>
 
     <section>
@@ -108,7 +93,7 @@
       <h2>FAQ</h2>
       <details class="faq" open>
         <summary>What's the difference between the no-signup free tier and the email-signup free tier?</summary>
-        <p>Same APIs, different rate limits. No-signup is 100 calls/day per IP. Email signup is 1,000 calls/day per key (and you can use the same key from multiple IPs / servers). The no-signup tier exists because "try before you buy" shouldn't require a card or an email.</p>
+        <p>Same APIs, different rate limits. No-signup is 100 calls/day per IP. Email signup is 1,000 calls/day per key (and you can use the same key from multiple IPs / servers). Hobby raises that to 5,000/day for $9/mo. The no-signup tier exists because "try before you buy" shouldn't require a card or an email.</p>
       </details>
       <details class="faq">
         <summary>Do you charge overage fees?</summary>
@@ -148,7 +133,6 @@
     const PRICE_IDS = {
       hobby:  'pri_01m3tceygyeetg9smeapr06ae1',   // $9.99/mo USD
       pro:    'pri_01m3tcq9wmrbpn6ps3wdvkd5rc',   // $30/mo USD
-      // volume tier is archived — emails billing@sitetrace.it.com instead
     };
 
     if (window.Paddle) {

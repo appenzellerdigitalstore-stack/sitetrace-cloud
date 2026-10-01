@@ -20,7 +20,7 @@
         <a href="/certs/">SSL</a>
         <a href="/docs/">Docs</a>
         <a href="/pricing/" class="active">Pricing</a>
-        <a href="/signup/" class="btn btn-primary">Get a free key</a>
+        <a href="/dashboard?next=/pricing" class="btn btn-primary" data-auth="in">Sign in</a>
       </nav>
     </div>
   </header>
@@ -54,7 +54,7 @@
             <li>Email support</li>
             <li>Per-endpoint usage stats</li>
           </ul>
-          <a href="#" onclick="checkout('hobby'); return false;" class="btn btn-primary">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=hobby" class="btn btn-primary">Subscribe</a>
         </div>
 
         <div class="price-card">
@@ -66,7 +66,7 @@
             <li>Priority email support</li>
             <li>Status page + changelog feed</li>
           </ul>
-          <a href="#" onclick="checkout('pro'); return false;" class="btn">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=pro" class="btn">Subscribe</a>
         </div>
       </div>
     </section>
@@ -162,37 +162,43 @@
         alert('That plan is not currently available. Email billing@sitetrace.it.com for help.');
         return;
       }
-      const email = (prompt('Enter your email to check out:') || '').trim().toLowerCase();
-      if (!email) return;
+
+      // The dashboard already gates Subscribe — we expect a logged-in user
+      // here (bounced back from /dashboard?next=/pricing&plan=X). If somehow
+      // we got here without a key, send them through the sign-in flow first.
+      const key = localStorage.getItem('sitetrace_key');
+      if (!key) {
+        const next = location.pathname + '?plan=' + encodeURIComponent(plan);
+        location.href = '/dashboard?next=' + encodeURIComponent(next);
+        return;
+      }
+
+      // Pull the user's email from /api/account so we don't need a prompt.
+      // (The email is the one Paddle sees at checkout, the webhook matches
+      // the D1 user by this email, and the receipt is sent here.)
+      let userEmail;
+      try {
+        const r = await fetch('/api/account?key=' + encodeURIComponent(key));
+        const d = await r.json();
+        userEmail = d.user && d.user.email;
+        if (!userEmail) throw new Error('no email on account');
+      } catch (e) {
+        alert('Could not load your account. Please sign in again.');
+        const next = location.pathname + '?plan=' + encodeURIComponent(plan);
+        location.href = '/dashboard?next=' + encodeURIComponent(next);
+        return;
+      }
 
       try {
         if (!window.Paddle?.Checkout) {
           alert('Checkout is still loading — refresh the page in a moment.');
           return;
         }
-
-        // Pre-signup: ensure a D1 row exists for this email BEFORE Paddle fires
-        // subscription.created. The webhook handler does findUserByEmail and
-        // silently exits if the user doesn't exist — without this step the
-        // upgrade never lands and the customer pays but stays on `free`.
-        const signupRes = await fetch(API_BASE + '/api/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
-        });
-        const signup = await signupRes.json();
-        if (!signup.ok || !signup.user?.api_key) {
-          throw new Error((signup && signup.error) || 'pre-checkout signup failed');
-        }
-        // Stash the key so the dashboard picks it up on the post-payment redirect.
-        // localStorage matches what dashboard.html already reads on subsequent visits.
-        try { localStorage.setItem('sitetrace_key', signup.user.api_key); } catch (_) {}
-
         window.Paddle.Checkout.open({
           items: [{ priceId: PRICE_IDS[plan], quantity: 1 }],
-          customer: { email },
-          customData: { email, plan },  // mirrored in passthrough for the webhook
-          passthrough: JSON.stringify({ email, plan }),
+          customer: { email: userEmail },
+          customData: { email: userEmail, plan },
+          passthrough: JSON.stringify({ email: userEmail, plan }),
           settings: {
             successUrl: 'https://api.sitetrace.it.com/dashboard?welcome=1',
           },
@@ -202,6 +208,18 @@
         console.error('[paddle] Checkout.open threw', e);
       }
     }
+
+    // Auto-fire checkout when arriving via the dashboard bounce —
+    // /pricing?plan=hobby (after sign-in) should open Paddle immediately.
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const plan = params.get('plan');
+      if (plan && PRICE_IDS[plan] && localStorage.getItem('sitetrace_key')) {
+        // Small delay so Paddle.js has a beat to finish Initialize().
+        setTimeout(() => checkout(plan), 300);
+      }
+    })();
   </script>
+  <script src="/js/auth-nav.js"></script>
 </body>
 </html>

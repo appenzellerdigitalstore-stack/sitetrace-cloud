@@ -14,7 +14,7 @@
       <nav class="nav">
         <a href="/docs/">Docs</a>
         <a href="/pricing/">Pricing</a>
-        <a href="/" class="btn">Sign out</a>
+        <a href="/" class="btn" id="signout-btn">Sign out</a>
       </nav>
     </div>
   </header>
@@ -105,8 +105,15 @@ with open('shot.png', 'wb') as f:
 
   <script>
     const params = new URLSearchParams(location.search);
+    const nextUrl = params.get('next') || '';
     const key = params.get('key') || localStorage.getItem('sitetrace_key') || '';
-    if (!key) {
+
+    // If we already have a key and the user came in via /pricing?next=/pricing,
+    // bounce them straight to the next URL (which is /pricing?plan=hobby, etc.).
+    // Skip if ?welcome=1 (Paddle post-payment redirect — they want to see the dashboard).
+    if (key && nextUrl && !params.get('welcome')) {
+      location.replace(nextUrl);
+    } else if (!key) {
       showRecoverForm();
     } else {
       localStorage.setItem('sitetrace_key', key);
@@ -127,7 +134,7 @@ with open('shot.png', 'wb') as f:
       document.body.innerHTML = `
         <div class="container" style="padding:80px 0;max-width:480px;text-align:center;">
           <h1 style="margin-bottom:8px;">Sign in</h1>
-          <p class="muted" style="margin-bottom:24px;">Enter the email you signed up with — we'll send you back to your dashboard.</p>
+          <p class="muted" style="margin-bottom:24px;">Enter the email you signed up with${nextUrl ? ' — then we\'ll continue where you left off' : ''}.</p>
           <form id="recover-form" style="display:flex;gap:8px;">
             <input type="email" id="recover-email" required placeholder="you@example.com"
                    style="flex:1;padding:12px 14px;border-radius:8px;border:1px solid var(--border,#333);background:var(--bg-2,#1a1a1a);color:var(--fg,#eee);font-size:15px;" />
@@ -157,9 +164,15 @@ with open('shot.png', 'wb') as f:
             throw new Error(d.error || d.message || 'lookup failed');
           }
           localStorage.setItem('sitetrace_key', d.user.api_key);
-          // Preserve any ?welcome=1 flag from Paddle redirect
-          const qs = params.get('welcome') ? '?welcome=1' : '';
-          location.replace('/dashboard' + qs);
+          // After sign-in: bounce to ?next= if present (e.g. /pricing?plan=hobby),
+          // else preserve ?welcome=1 from Paddle redirect.
+          if (nextUrl) {
+            location.replace(nextUrl);
+          } else if (params.get('welcome')) {
+            location.replace('/dashboard?welcome=1');
+          } else {
+            location.replace('/dashboard');
+          }
         } catch (err) {
           msg.textContent = '❌ ' + (err.message || 'something went wrong');
           btn.disabled = false;
@@ -169,9 +182,8 @@ with open('shot.png', 'wb') as f:
     }
 
     // Real sign-out handler — clears the cached key and bounces to home.
-    // The link in the nav is just an <a href="/"> until we wire it up below.
-    document.querySelector('a[href="/"].btn')?.addEventListener('click', (e) => {
-      // Only intercept if we actually have a key cached
+    // Used by the Sign out button in the nav.
+    document.getElementById('signout-btn')?.addEventListener('click', (e) => {
       if (!localStorage.getItem('sitetrace_key')) return;
       e.preventDefault();
       localStorage.removeItem('sitetrace_key');
@@ -198,6 +210,69 @@ with open('shot.png', 'wb') as f:
         const bar = `<div style="background: var(--code-bg); border-radius: 3px; height: 8px; width: 100px; overflow: hidden;"><div style="background: ${pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--good)'}; width: ${pct}%; height: 100%;"></div></div>`;
         return `<tr><td><code>/api/${ep}</code></td><td>${c.toLocaleString()}</td><td>${d.user.daily_quota.toLocaleString()}</td><td>${bar} ${pct}%</td></tr>`;
       }).join('');
+      // Free-tier upsell — show a card with an Upgrade to Hobby button.
+      // In-app upsell is the highest-converting surface for free users
+      // who are already engaged.
+      if ((d.user.plan || 'free') === 'free') {
+        renderUpsell(d.user.email);
+      }
+    }
+
+    function renderUpsell(userEmail) {
+      // Insert an upsell card after the existing api-grid section.
+      const grid = document.querySelector('.api-grid');
+      if (!grid) return;
+      const card = document.createElement('div');
+      card.className = 'api-card';
+      card.id = 'upsell-card';
+      card.style.cssText = 'margin-top: 24px; border-color: var(--accent, #4ade80);';
+      card.innerHTML = `
+        <h3>Need more calls/day?</h3>
+        <p>You're on the free tier (<strong>1,000 calls/day</strong>). Hobby raises that to <strong>5,000 calls/day</strong> for $9/mo — that's 5× the quota, email support, and per-endpoint usage stats. Cancel any time.</p>
+        <button class="btn btn-primary" id="upsell-hobby" style="margin-top:8px;">Upgrade to Hobby — $9/mo</button>
+        <button class="btn" id="upsell-pro" style="margin-top:8px;margin-left:8px;">Or Pro — $30/mo</button>
+        <p id="upsell-msg" class="muted" style="margin-top:12px;font-size:13px;"></p>`;
+      grid.after(card);
+      const PRICE_IDS = {
+        hobby: 'pri_01m3tceygyeetg9smeapr06ae1',
+        pro:   'pri_01m3tcq9wmrbpn6ps3wdvkd5rc',
+      };
+      async function upgrade(plan) {
+        const msg = document.getElementById('upsell-msg');
+        msg.textContent = '';
+        // Paddle.js may not be loaded on this page; load it on demand.
+        if (!window.Paddle) {
+          await new Promise((resolve, reject) => {
+            const s = document.createElement('script');
+            s.src = 'https://cdn.paddle.com/paddle/v2/paddle.js';
+            s.onload = resolve;
+            s.onerror = reject;
+            document.head.appendChild(s);
+          });
+        }
+        if (window.Paddle) {
+          window.Paddle.Environment.set('sandbox');
+          if (!window.Paddle._initialized) {
+            window.Paddle.Initialize({ token: 'test_fe6ada9d2948324a7eab2250ee9' });
+            window.Paddle._initialized = true;
+          }
+          try {
+            window.Paddle.Checkout.open({
+              items: [{ priceId: PRICE_IDS[plan], quantity: 1 }],
+              customer: { email: userEmail },
+              customData: { email: userEmail, plan },
+              passthrough: JSON.stringify({ email: userEmail, plan }),
+              settings: { successUrl: 'https://api.sitetrace.it.com/dashboard?welcome=1' },
+            });
+          } catch (e) {
+            msg.textContent = '❌ ' + e.message;
+          }
+        } else {
+          msg.textContent = 'Could not load checkout. Try again in a moment.';
+        }
+      }
+      document.getElementById('upsell-hobby').onclick = () => upgrade('hobby');
+      document.getElementById('upsell-pro').onclick = () => upgrade('pro');
     }
 
     function copyKey() {
@@ -221,5 +296,6 @@ with open('shot.png', 'wb') as f:
       });
     });
   </script>
+  <script src="/js/auth-nav.js"></script>
 </body>
 </html>

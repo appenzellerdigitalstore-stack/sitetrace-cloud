@@ -20,6 +20,7 @@
         <a href="/certs/">SSL</a>
         <a href="/docs/">Docs</a>
         <a href="/pricing/">Pricing</a>
+        <a href="/dashboard?next=/signup" class="btn btn-primary" data-auth="in">Sign in</a>
       </nav>
     </div>
   </header>
@@ -102,6 +103,9 @@
           err.style.display = 'block';
           document.getElementById('error-msg').textContent = data.message || ('HTTP ' + r.status);
         } else {
+          // Save key to localStorage so the dashboard picks it up
+          // without the user having to type ?key= in the URL.
+          try { localStorage.setItem('sitetrace_key', data.user.api_key); } catch (_) {}
           result.style.display = 'block';
           document.getElementById('key-out').textContent = data.user.api_key;
           const dash = document.getElementById('dash-link');
@@ -117,5 +121,6 @@
       }
     });
   </script>
+  <script src="/js/auth-nav.js"></script>
 </body>
 </html>

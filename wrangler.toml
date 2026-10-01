@@ -40,21 +40,21 @@ id = "34a24f07e7e140948b4491df07f0d62d"
 # ---------------------------------------------------------------------
 # Paddle Billing integration
 #
-# Product IDs are public catalog identifiers, NOT secrets — kept here
-# in [vars] so they ship with the deploy. (Per Cloudflare, when
-# wrangler.toml manages vars, the dashboard UI greys out plaintext
-# vars; only Secrets can be added via the dashboard.)
+# Source of truth for ALL Paddle env vars is the CF dashboard
+# (Workers & Pages → sitetrace-api → Settings → Variables and secrets).
+# Product IDs and secrets are intentionally NOT declared here so the
+# dashboard isn't greyed out, and so a single git commit can't leak
+# the live (post-sandbox) product IDs or webhook secret.
 #
-# Secrets (NEVER commit) — set via CF dashboard Variables and secrets:
-#     PADDLE_WEBHOOK_SECRET    Paddle → Developer tools → Notifications
-#     PADDLE_API_KEY           Paddle → Developer tools → Authentication
+# Currently stored in dashboard:
+#   Plaintext — PADDLE_PRODUCT_HOBBY, PADDLE_PRODUCT_PRO
+#               (PADDLE_PRODUCT_VOLUME was deleted — Volume tier is
+#                archived; unarchive + re-add when Workers Paid is on)
+#   Secrets   — PADDLE_API_KEY, PADDLE_WEBHOOK_SECRET
 #
-# Sandbox product IDs (flip to live by editing this file + rotating secrets).
+# Sandbox ↔ live flip: rotate the two secrets in the dashboard and
+# update the two plaintext product IDs in the dashboard. No code change.
 # ---------------------------------------------------------------------
-[vars]
-PADDLE_PRODUCT_HOBBY  = "pro_01m3tc3y6p4sf9xn01zknr03jp"
-PADDLE_PRODUCT_PRO    = "pro_01m3tchdmcwqdpkh6tkarwacar"
-PADDLE_PRODUCT_VOLUME = "pro_01m3tcrgxj2wa0w489zmysbc6d"
 
 # ---------------------------------------------------------------------
 # Browser Rendering — headless Chrome for the screenshot API

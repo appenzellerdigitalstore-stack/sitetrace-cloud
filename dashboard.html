@@ -112,9 +112,16 @@ with open('shot.png', 'wb') as f:
 
     // If we already have a key and the user came in via /pricing?next=/pricing,
     // bounce them straight to the next URL (which is /pricing?plan=hobby, etc.).
+    // PRESERVE the ?plan=X query param so /pricing auto-fires the right checkout
+    // — without this, the bounce drops the plan and the user lands on /pricing
+    // with no checkout opening (Hobby worked earlier only via the free-tier
+    // upsell card; the /pricing Subscribe button was silently broken).
     // Skip if ?welcome=1 (Paddle post-payment redirect — they want to see the dashboard).
     if (key && nextUrl && !params.get('welcome')) {
-      location.replace(nextUrl);
+      const plan = params.get('plan');
+      const sep = nextUrl.includes('?') ? '&' : '?';
+      const target = plan ? `${nextUrl}${sep}plan=${encodeURIComponent(plan)}` : nextUrl;
+      location.replace(target);
     } else if (!key) {
       showRecoverForm();
     } else {
@@ -236,8 +243,8 @@ with open('shot.png', 'wb') as f:
       card.style.cssText = 'margin-top: 24px; border-color: var(--accent, #4ade80);';
       card.innerHTML = `
         <h3>Need more calls/day?</h3>
-        <p>You're on the free tier (<strong>1,000 calls/day</strong>). Hobby raises that to <strong>5,000 calls/day</strong> for $9/mo — that's 5× the quota, email support, and per-endpoint usage stats. Cancel any time.</p>
-        <button class="btn btn-primary" id="upsell-hobby" style="margin-top:8px;">Upgrade to Hobby — $9/mo</button>
+        <p>You're on the free tier (<strong>1,000 calls/day</strong>). Hobby raises that to <strong>5,000 calls/day</strong> for $9.99/mo — that's 5× the quota, email support, and per-endpoint usage stats. Cancel any time.</p>
+        <button class="btn btn-primary" id="upsell-hobby" style="margin-top:8px;">Upgrade to Hobby — $9.99/mo</button>
         <button class="btn" id="upsell-pro" style="margin-top:8px;margin-left:8px;">Or Pro — $30/mo</button>
         <p id="upsell-msg" class="muted" style="margin-top:12px;font-size:13px;"></p>`;
       grid.after(card);

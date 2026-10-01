@@ -179,14 +179,22 @@ function computeScore(spf, dkim, dmarc, mx) {
 }
 
 async function probeDkim(domain) {
-  const results = await Promise.all(DKIM_SELECTORS.map(async sel => {
-    const r = await doh(sel + '._domainkey.' + domain, 'TXT');
-    return { selector: sel, records: r.answers };
-  }));
-  for (const r of results) {
-    if (r.records.length > 0) {
-      const parsed = parseDkim(r.records);
-      if (parsed.present) return { ...parsed, selector: r.selector };
+  // CF Workers allows only 6 simultaneous subrequests per invocation. Doing
+  // Promise.all over 20 selectors + 3 other DoH calls = 23 in flight would
+  // cause the runtime to either queue or crash. Walk in batches of 5 and
+  // short-circuit as soon as we find a valid DKIM record.
+  const BATCH = 5;
+  for (let i = 0; i < DKIM_SELECTORS.length; i += BATCH) {
+    const slice = DKIM_SELECTORS.slice(i, i + BATCH);
+    const results = await Promise.all(slice.map(async sel => {
+      const r = await doh(sel + '._domainkey.' + domain, 'TXT');
+      return { selector: sel, records: r.answers };
+    }));
+    for (const r of results) {
+      if (r.records.length > 0) {
+        const parsed = parseDkim(r.records);
+        if (parsed.present) return { ...parsed, selector: r.selector };
+      }
     }
   }
   return { present: false, probedSelectors: DKIM_SELECTORS, probedCount: DKIM_SELECTORS.length };
@@ -212,32 +220,40 @@ export async function onRequestGet(context) {
     return json({ error: 'invalid_domain', message: 'Provide a valid domain (e.g. example.com).' }, 400);
   }
   const start = Date.now();
-  const [spfRec, dmarcRec, mxRec] = await Promise.all([
-    doh(domain, 'TXT'),
-    doh('_dmarc.' + domain, 'TXT'),
-    doh(domain, 'MX'),
-  ]);
-  const [dkim, bimi] = await Promise.all([
-    probeDkim(domain),
-    doh('default._bimi.' + domain, 'TXT').then(parseBimi),
-  ]);
-  const spf   = parseSpf(spfRec.answers);
-  const dmarc = parseDmarc(dmarcRec.answers);
-  const mx    = parseMx(mxRec.answers);
-  const { score, risk, issues, checks } = computeScore(spf, dkim, dmarc, mx);
-  return json({
-    domain,
-    fetched_ms: Date.now() - start,
-    score,
-    risk,
-    issues,
-    checks,
-    records: {
-      spf:   { ...spf,   raw: spfRec.answers.map(a => a.data) },
-      dkim,
-      dmarc: { ...dmarc, raw: dmarcRec.answers.map(a => a.data) },
-      mx,
-      bimi,
-    },
-  });
+  try {
+    const [spfRec, dmarcRec, mxRec] = await Promise.all([
+      doh(domain, 'TXT'),
+      doh('_dmarc.' + domain, 'TXT'),
+      doh(domain, 'MX'),
+    ]);
+    const [dkim, bimi] = await Promise.all([
+      probeDkim(domain),
+      doh('default._bimi.' + domain, 'TXT').then(parseBimi).catch(() => ({ present: false })),
+    ]);
+    const spf   = parseSpf(spfRec.answers);
+    const dmarc = parseDmarc(dmarcRec.answers);
+    const mx    = parseMx(mxRec.answers);
+    const { score, risk, issues, checks } = computeScore(spf, dkim, dmarc, mx);
+    return json({
+      domain,
+      fetched_ms: Date.now() - start,
+      score,
+      risk,
+      issues,
+      checks,
+      records: {
+        spf:   { ...spf,   raw: spfRec.answers.map(a => a.data) },
+        dkim,
+        dmarc: { ...dmarc, raw: dmarcRec.answers.map(a => a.data) },
+        mx,
+        bimi,
+      },
+    });
+  } catch (e) {
+    return json({
+      error: 'internal_error',
+      message: (e && e.message) || String(e),
+      hint: 'DoH upstream or DNS resolution failed',
+    }, 500);
+  }
 }

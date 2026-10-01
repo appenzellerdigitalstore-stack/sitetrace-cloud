@@ -31,7 +31,7 @@ export async function onRequestGet(context) {
   }
 
   const user = await db.prepare(
-    'SELECT id, email, api_key, plan, status, daily_quota, created_at FROM users WHERE api_key = ?'
+    'SELECT id, email, api_key, plan, status, daily_quota, created_at, paddle_subscription_id, paddle_customer_id FROM users WHERE api_key = ?'
   ).bind(key).first();
   if (!user) {
     return json({ error: 'invalid_key', message: 'API key not found.' }, 404);
@@ -55,6 +55,13 @@ export async function onRequestGet(context) {
       status: user.status,
       daily_quota: user.daily_quota,
       created_at: user.created_at,
+      // Returned so the checkout script can pass paddle_subscription_id
+      // to Paddle.Checkout.open() — without it, Paddle sandbox sometimes
+      // treats the upgrade as a brand-new subscription instead of a plan
+      // change, charging the full new price AND leaving the old one
+      // running. See pricing.html checkout() for the usage.
+      paddle_subscription_id: user.paddle_subscription_id || null,
+      paddle_customer_id: user.paddle_customer_id || null,
     },
     usage: {
       date,

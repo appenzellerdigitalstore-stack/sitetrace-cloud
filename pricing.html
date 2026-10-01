@@ -176,11 +176,12 @@
       // Pull the user's email from /api/account so we don't need a prompt.
       // (The email is the one Paddle sees at checkout, the webhook matches
       // the D1 user by this email, and the receipt is sent here.)
-      let userEmail;
+      let userEmail, paddleSubscriptionId;
       try {
         const r = await fetch('/api/account?key=' + encodeURIComponent(key));
         const d = await r.json();
         userEmail = d.user && d.user.email;
+        paddleSubscriptionId = d.user && d.user.paddle_subscription_id;
         if (!userEmail) throw new Error('no email on account');
       } catch (e) {
         alert('Could not load your account. Please sign in again.');
@@ -194,8 +195,16 @@
           alert('Checkout is still loading — refresh the page in a moment.');
           return;
         }
+        // If this user already has a Paddle subscription (Hobby→Pro upgrade),
+        // pass subscriptionId so Paddle forces a plan change with proration
+        // — otherwise sandbox can create a SECOND subscription alongside the
+        // first, charging full price AND leaving the old one running.
+        const item = { priceId: PRICE_IDS[plan], quantity: 1 };
+        if (paddleSubscriptionId) {
+          item.subscriptionId = paddleSubscriptionId;
+        }
         window.Paddle.Checkout.open({
-          items: [{ priceId: PRICE_IDS[plan], quantity: 1 }],
+          items: [item],
           customer: { email: userEmail },
           customData: { email: userEmail, plan },
           passthrough: JSON.stringify({ email: userEmail, plan }),

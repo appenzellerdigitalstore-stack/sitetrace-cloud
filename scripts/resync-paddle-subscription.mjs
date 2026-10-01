@@ -33,9 +33,9 @@ const email = (process.argv[2] || '').trim().toLowerCase();
 const plan  = (process.argv[3] || 'hobby').trim().toLowerCase();
 
 const PRODUCT_ID = {
-  hobby:  env.PADDLE_PRODUCT_HOBBY_SANDBOX,
-  pro:    env.PADDLE_PRODUCT_PRO_SANDBOX,
-  volume: env.PADDLE_PRODUCT_VOLUME_SANDBOX,
+  hobby:  env.PADDLE_PRODUCT_HOBBY,
+  pro:    env.PADDLE_PRODUCT_PRO,
+  volume: env.PADDLE_PRODUCT_VOLUME,
 }[plan];
 
 if (!email || !PRODUCT_ID) {

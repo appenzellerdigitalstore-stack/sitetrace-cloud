@@ -224,10 +224,11 @@
 
   <!-- =================================================================
        Free-tier choice modal — shown when clicking "Get a free key"
+       Starts display:none; the show() handler flips it to flex.
+       (Inline display:flex would beat the `hidden` attribute.)
        ================================================================= -->
   <div id="free-modal" role="dialog" aria-modal="true" aria-labelledby="free-modal-title"
-       hidden
-       style="position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:30;display:flex;align-items:center;justify-content:center;padding:20px;">
+       style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:30;align-items:center;justify-content:center;padding:20px;">
     <div style="background:var(--bg-1,#0d1117);border:1px solid var(--border,#222);border-radius:14px;max-width:640px;width:100%;padding:28px;box-shadow:0 24px 64px rgba(0,0,0,.5);">
       <div style="display:flex;justify-content:space-between;align-items:start;gap:16px;margin-bottom:8px;">
         <h2 id="free-modal-title" style="margin:0;font-size:22px;">How do you want to use sitetrace?</h2>
@@ -286,13 +287,13 @@
       if (!modal || !open) return;
 
       function show() {
-        modal.hidden = false;
+        modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         // Focus the recommended (signup) option for keyboard users
         setTimeout(() => sign && sign.focus(), 30);
       }
       function hide() {
-        modal.hidden = true;
+        modal.style.display = 'none';
         document.body.style.overflow = '';
       }
 

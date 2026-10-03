@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roadmap — sitetrace API</title>
+  <meta name="description" content="What we're shipping now, next, and beyond on sitetrace API. Updated from the project tracker." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://api.sitetrace.it.com/roadmap/" />
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .roadmap-section { margin: 32px 0; }
+    .roadmap-section h2 { display: flex; align-items: baseline; gap: 12px; }
+    .roadmap-section h2 .count {
+      font-family: var(--mono); font-size: 13px;
+      background: var(--bg-elev); padding: 2px 8px; border-radius: 4px;
+      color: var(--muted);
+    }
+    .roadmap-list { list-style: none; padding: 0; margin: 0; }
+    .roadmap-item {
+      border-top: 1px solid var(--border, #1f2937);
+      padding: 16px 0;
+    }
+    .roadmap-item:first-child { border-top: none; padding-top: 8px; }
+    .roadmap-title { font-weight: 600; font-size: 16px; }
+    .roadmap-meta { font-size: 13px; margin-top: 2px; }
+    .roadmap-details { font-size: 14px; margin-top: 6px; color: var(--muted); line-height: 1.5; }
+    .summary-bar {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      font-family: var(--mono); font-size: 13px;
+      padding: 12px 16px; background: var(--bg-elev);
+      border-radius: 6px; border: 1px solid var(--border, #1f2937);
+    }
+    .summary-bar span { color: var(--muted); }
+    .updated-at { font-family: var(--mono); font-size: 12px; color: var(--muted); margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="brand"><span class="dot"></span>sitetrace API</a>
+      <nav class="nav">
+        <a href="/shot/">Screenshot</a>
+        <a href="/ip/">IP</a>
+        <a href="/email/">Email</a>
+        <a href="/preview/">Preview</a>
+        <a href="/certs/">SSL</a>
+        <a href="/docs/">Docs</a>
+        <a href="/pricing/">Pricing</a>
+        <a href="/status/">Status</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="container">
+    <section class="hero" style="padding-top: 60px; border-top: none;">
+      <h1>Roadmap</h1>
+      <p class="lede">What we're shipping on sitetrace API, in priority order. Same data as our internal tracker — we keep no secrets from you.</p>
+      <div class="summary-bar">
+        <span>3 now · 3 next · 5 future · 12 shipped</span>
+      </div>
+    </section>
+
+    
+    <section class="roadmap-section">
+      <h2>Now <span class="count">3</span></h2>
+      <ul class="roadmap-list">
+    <li class="roadmap-item">
+      <div class="roadmap-title">Update Paddle sandbox products to match new tier names + prices</div>
+      <div class="roadmap-meta"><span class="muted small">Ed</span></div>
+      <div class="roadmap-details">Create 4 new sandbox products (T1 T2 T3 T4) with $9/19/29/49 prices. Ed handles in Paddle dashboard. After Ed creates new price IDs, Agent updates wrangler.toml vars</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">End-to-end test: signup to checkout to use API to quota updates to upgrade to see new quota</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Use sandbox Paddle test card 4000-0000-0000-0002. Script the full journey. Document every step. Find every rough edge</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Buy Workers Paid $5/mo before first paid user hits the cap</div>
+      <div class="roadmap-meta"><span class="muted small">Ed</span></div>
+      <div class="roadmap-details">Dashboard toggle in Workers &amp; Pages. Will NOT enable Browser Rendering (that's separate later task)</div>
+    </li></ul>
+    </section>
+    
+    <section class="roadmap-section">
+      <h2>Next <span class="count">3</span></h2>
+      <ul class="roadmap-list">
+    <li class="roadmap-item">
+      <div class="roadmap-title">Anti-abuse: email verification on signup (CF Email Workers or Resend free tier)</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">100 free emails/day covers launch. Magic link verification</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Tool-page shared key: anonymous visitors share 5000/day total via sitetrace.it.com</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Generate separate D1 api_key for tool pages. 5000/day cap. When exhausted show Sign up for free 100/day CTA</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Google Search Console: Request Indexing for Tier-1 URLs after quota refills</div>
+      <div class="roadmap-meta"><span class="muted small">Ed</span></div>
+      <div class="roadmap-details">4 URLs: / /network-tools/ /what-is-my-ip/ /isitdown/</div>
+    </li></ul>
+    </section>
+    
+    <section class="roadmap-section">
+      <h2>Future <span class="count">5</span></h2>
+      <ul class="roadmap-list">
+    <li class="roadmap-item">
+      <div class="roadmap-title">Enable Browser Rendering ($5/mo Workers Paid includes it) to ship /api/shot for real</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Blocked on Ed go-ahead for $5/mo Workers Paid</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Multi-provider IP geo fallback (ip-api.com to IPGeolocation.io to ipapi.co)</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">ip-api $13/mo Pro when revenue covers. Otherwise rotate free tiers with rate limiting</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Subsite strategy: whatismyip.sitetrace.it.com isitdown.sitetrace.it.com etc.</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">8 subsites. 1 HTML + 1 API fetch + 1 AdSense slot each. Target: 100k+ searches/mo terms</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Per-user rate-limit-per-second tiers (1 5 10 20 req/sec)</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Separate from daily quota. Premium tier feature</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Indie SaaS playbook research: how Plausible / Apify / ipinfo.io got to $1k/mo</div>
+      <div class="roadmap-meta"><span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Phase 2 - only after launch sequence done. Web research on growth patterns</div>
+    </li></ul>
+    </section>
+    
+    <section class="roadmap-section">
+      <h2>Recently shipped <span class="count">12</span></h2>
+      <ul class="roadmap-list">
+    <li class="roadmap-item">
+      <div class="roadmap-title">IP rate limit: 1000 req/day per IP across all free accounts on that IP (KV-backed)</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-04</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">_middleware.js checks env.RATELIMIT counter ipcap:{ip}:{date} for plan=free users. Read-modify-write (eventually consistent). 1000/day cap. Paid users (T1-T4) bypass. Commit 2a65324.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Public roadmap page on api.sitetrace.it.com/roadmap</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-04</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">scripts/build-roadmap.mjs reads tracker-roadmap.csv and writes roadmap.html. Sections: Now (URGENT), Next, Future, Recently shipped. Cyan theme + linked to GitHub source.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Write /docs page on api.sitetrace.it.com (OpenAPI spec + language SDKs)</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Quickstart section with 5-language tabs (curl/js/py/go/rb) + tab-switcher JS + OpenAPI download link. Commit 986a09f.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Basic monitoring: webhook delivery counters (KV) + /api/webhook-stats endpoint + dashboard widget</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">KV namespace RATELIMIT. Per-day, per-status counters. GET /api/webhook-stats returns last 7 days. Dashboard widget shows 24h health. End-to-end test: signed POST → 200=1, unsigned → 401=3. Would have caught the silent 401 bug immediately.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Disposable-email blocklist (~60+ domains hardcoded)</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Mailinator/10minutemail/Yopmail/Guerrilla/etc. Inlined into functions/api/signup.js. Deploy pending CF Pages rebuild — wrangler.toml double-bump not picked up yet (CF Pages function cache bug). Commit e39c106.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Write /docs page on api.sitetrace.it.com (Quickstart + OpenAPI link)</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Added Quickstart section with 5-language tabs (curl/js/py/go/rb) and tab-switcher JS. OpenAPI download link added to top. /api/openapi.json endpoint created but CF Pages build cache not picking it up yet — still returns index.html. /docs improvements are live though.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Lock pricing tiers in code: T1-T4 ($9/$19/$29/$49) with legacy Hobby/Pro fallback</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">PLANS table in middleware has T1-T4 added (1k/2k/3k/5k daily). wrangler.toml has PADDLE_PRODUCT_T1-T4 env vars (empty until Ed creates products). pricing.html shows new tier cards + checkout() alerts when price ID missing. paddle-webhook.js planFromProductId recognizes T1-T4 alongside Hobby/Pro.</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Paddle webhook 401 fix — PADDLE_WEBHOOK_SECRET was set to endpoint ID not actual secret</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Agent+Ed</span></div>
+      <div class="roadmap-details">Ed pasted secret via CF dashboard. Agent verified via API push + Pages redeploy. Test signed POST returned 200. Ed's D1 row now shows Pro (Paddle auto-retried historical events)</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Reusable scripts: audit-ai.mjs batch-audit-ai.mjs cyan-pass.mjs add-byline.mjs internal-links.mjs shot.mjs start-edge-debug.ps1</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">All idempotent, used for current pages and reusable for future</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">6 git commits pushed to origin/main: f20027e 7759aca 9f80bea 44a3a37 f3558a2 276e808 dfa6418 1d01d16</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Landing redesign, batch 1-4 essays, brand polish, internal links, AGENTS.md polish, Pages redeploy for env refresh</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Decision: T1-T4 linear pricing $9/19/29/49</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Ed</span></div>
+      <div class="roadmap-details">Linear matches cost structure (no economy of scale). Confirmed by Ed after discussion</div>
+    </li>
+    <li class="roadmap-item">
+      <div class="roadmap-title">Decision: aggregate quota not per-endpoint</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Ed</span></div>
+      <div class="roadmap-details">Cleaner pricing, harder to game. Decision logged in ROADMAP.md decisions table</div>
+    </li></ul>
+    </section>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div>© sitetrace API</div>
+      <div class="links">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/changelog/">Changelog</a>
+        <a href="/status/">Status</a>
+      </div>
+    </div>
+  </footer>
+
+  <p class="updated-at" style="text-align: center;">Generated 2026-10-03 · <a href="https://github.com/appenzellerdigitalstore-stack/sitetrace-cloud/blob/main/tracker-roadmap.csv">source: tracker-roadmap.csv</a></p>
+</body>
+</html>

@@ -55,6 +55,25 @@
     </section>
 
     <section>
+      <h2>Webhook health</h2>
+      <p class="muted">Paddle webhook delivery counters from the last 24 hours. A 401 here means PADDLE_WEBHOOK_SECRET is out of sync.</p>
+      <p style="margin: 8px 0 16px 0; font-size: 18px;">
+        <span id="wh-status" style="font-weight: 700;">…</span>
+        <span class="muted"> · </span>
+        <strong id="wh-total">…</strong>
+        <span class="muted"> deliveries · </span>
+        <strong id="wh-errors" style="color: var(--bad);">…</strong>
+        <span class="muted"> errors</span>
+      </p>
+      <table>
+        <thead><tr><th>Date (UTC)</th><th>Total</th><th>200</th><th>400</th><th>401</th><th>500</th><th>503</th></tr></thead>
+        <tbody id="wh-body">
+          <tr><td colspan="7" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
       <h2>Today's usage</h2>
       <p class="muted">Aggregate cap across all endpoints — resets at UTC midnight. <a href="#" id="refresh">Refresh</a></p>
       <p style="margin: 8px 0 16px 0; font-size: 18px;">
@@ -249,6 +268,44 @@ with open('shot.png', 'wb') as f:
       // who are already engaged.
       if ((d.user.plan || 'free') === 'free') {
         renderUpsell(d.user.email);
+      }
+      // Webhook health is operational metadata, doesn't need auth — fetch
+      // in parallel and ignore failures (KV unavailable, etc.).
+      loadWebhookHealth();
+    }
+
+    async function loadWebhookHealth() {
+      try {
+        const r = await fetch('/api/webhook-stats');
+        if (!r.ok) {
+          document.getElementById('wh-status').textContent = '(unavailable)';
+          return;
+        }
+        const w = await r.json();
+        const s = w.last_24h;
+        const statusEl = document.getElementById('wh-status');
+        statusEl.textContent = s.healthy ? 'HEALTHY ✓'
+                             : s.errors > 0 ? 'ERRORS DETECTED'
+                             : s.total > 0 ? 'OK' : 'NO DELIVERIES YET';
+        statusEl.style.color = s.healthy ? 'var(--good)' : s.errors > 0 ? 'var(--bad)' : 'var(--fg-muted, #888)';
+        document.getElementById('wh-total').textContent = s.total;
+        document.getElementById('wh-errors').textContent = s.errors;
+        document.getElementById('wh-body').innerHTML = w.by_day.map(d => {
+          const s = d.by_status;
+          const cell = (n) => n > 0 ? `<strong style="color: ${n > 0 && [400,401,500,503].includes(0) ? 'inherit' : 'inherit'};">${n}</strong>` : '0';
+          const errCell = (n) => n > 0 ? `<strong style="color: var(--bad);">${n}</strong>` : '0';
+          return `<tr>
+            <td>${d.date}</td>
+            <td>${d.total}</td>
+            <td>${cell(s[200])}</td>
+            <td>${errCell(s[400])}</td>
+            <td>${errCell(s[401])}</td>
+            <td>${errCell(s[500])}</td>
+            <td>${errCell(s[503])}</td>
+          </tr>`;
+        }).join('');
+      } catch (_) {
+        document.getElementById('wh-status').textContent = '(error)';
       }
     }
 

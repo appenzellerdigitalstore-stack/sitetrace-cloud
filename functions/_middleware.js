@@ -38,6 +38,10 @@ const PUBLIC_PATHS = new Set([
   // not via the middleware's Bearer header, so the quota counter doesn't
   // tick for a subscription update. See functions/api/change-plan.js.
   '/api/change-plan',
+  // Webhook stats — operational metadata for the dashboard. Not sensitive
+  // (just delivery counts), and counting it against user quota would be
+  // wrong (it's an admin/monitoring call, not an API call).
+  '/api/webhook-stats',
 ]);
 
 // Static-asset paths under /api/ (e.g. swagger.json) — also public.

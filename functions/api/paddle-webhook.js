@@ -258,17 +258,17 @@ export async function onRequestPost(context) {
   // Quick health response so Paddle's "test webhook" button doesn't
   // require all secrets configured
   if (!env.PADDLE_WEBHOOK_SECRET) {
-    return jsonResponse({
+    return withStats(env, jsonResponse({
       error: 'not_configured',
       message: 'PADDLE_WEBHOOK_SECRET env var not set. See wrangler.toml / CF dashboard.',
-    }, 503);
+    }, 503));
   }
 
   if (!env.DB) {
-    return jsonResponse({
+    return withStats(env, jsonResponse({
       error: 'not_configured',
       message: 'D1 binding missing — re-check wrangler.toml [[d1_databases]] block',
-    }, 503);
+    }, 503));
   }
 
   // Paddle posts JSON. Read raw body once — needed for both signature
@@ -278,17 +278,17 @@ export async function onRequestPost(context) {
 
   const valid = await verifyPaddleSignature(rawBody, sigHeader, env.PADDLE_WEBHOOK_SECRET);
   if (!valid) {
-    return jsonResponse({
+    return withStats(env, jsonResponse({
       error: 'invalid_signature',
       message: 'HMAC verification failed — check PADDLE_WEBHOOK_SECRET matches Paddle dashboard',
-    }, 401);
+    }, 401));
   }
 
   let event;
   try {
     event = JSON.parse(rawBody);
   } catch (_) {
-    return jsonResponse({ error: 'invalid_json' }, 400);
+    return withStats(env, jsonResponse({ error: 'invalid_json' }, 400));
   }
 
   const eventType = event.event_type;
@@ -309,21 +309,21 @@ export async function onRequestPost(context) {
     }
   } catch (e) {
     console.error('paddle-webhook: handler failed for', eventType, e?.message || e);
-    return jsonResponse({
+    return withStats(env, jsonResponse({
       error: 'handler_failed',
       event_type: eventType,
       message: e?.message || String(e),
-    }, 500);
+    }, 500));
   }
 
   // Paddle expects 2xx quickly; ack with the event_id so the dashboard
   // shows "delivered" status
-  return jsonResponse({
+  return withStats(env, jsonResponse({
     received: true,
     event_id: event.event_id,
     event_type: eventType,
     processed_at: new Date().toISOString(),
-  }, 200);
+  }, 200));
 }
 
 // OPTIONS preflight — Paddle webhooks don't send OPTIONS, but include
@@ -345,6 +345,53 @@ function jsonResponse(obj, status = 200) {
     status,
     headers: { 'Content-Type': 'application/json' },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Webhook observability — KV-backed counter per (day, status) so the
+// dashboard can surface "we got N 401s in the last 24h" without grepping
+// logs. Uses the same RATELIMIT KV namespace as the IP rate-limit (cheap
+// increments, no cost concerns; namespaces are just buckets).
+//
+// Failure mode: if KV is unavailable, we still return the response —
+// monitoring must never break the request path.
+// ---------------------------------------------------------------------------
+async function recordWebhookStat(env, status) {
+  try {
+    const day = new Date().toISOString().slice(0, 10); // UTC date
+    // Two buckets: total + per-status. Total lets the dashboard show
+    // "N deliveries today"; per-status lets it show the breakdown and
+    // alert on any 401/5xx.
+    const totalKey = `wh:${day}:total`;
+    const statusKey = `wh:${day}:${status}`;
+    // KV doesn't have a native INCR, so we read-modify-write. Concurrent
+    // webhook deliveries from Paddle are extremely rare so this is fine;
+    // if we ever see race issues, switch to a Workers Analytics Engine
+    // dataset (also free, but more setup).
+    const [t, s] = await Promise.all([
+      env.RATELIMIT.get(totalKey),
+      env.RATELIMIT.get(statusKey),
+    ]);
+    const newTotal = (parseInt(t || '0', 10) || 0) + 1;
+    const newStatus = (parseInt(s || '0', 10) || 0) + 1;
+    await Promise.all([
+      env.RATELIMIT.put(totalKey, String(newTotal), { expirationTtl: 60 * 60 * 24 * 30 }),
+      env.RATELIMIT.put(statusKey, String(newStatus), { expirationTtl: 60 * 60 * 24 * 30 }),
+    ]);
+  } catch (e) {
+    console.error('paddle-webhook: recordWebhookStat failed', e?.message || e);
+  }
+}
+
+// Wrap a Response and increment the per-status counter. Use like:
+//   return withStats(env, jsonResponse({...}, 401));
+//
+// Note: we await the counter (KV write is ~5ms) rather than fire-and-forget,
+// because we don't have context.waitUntil exposed here without restructuring.
+// At CF scale this is fine — webhooks are <1000/day even at $3k MRR.
+async function withStats(env, response) {
+  await recordWebhookStat(env, response.status);
+  return response;
 }
 
 // Dual-export for Node test runner (matches the pattern in the other endpoints).

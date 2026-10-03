@@ -156,6 +156,11 @@
       <div class="roadmap-details">Terms §7a (no cloning/scraping/rehosting) + §7b (no LLM/embedding training). X-Robots-Tag: noai,noimageai on every middleware JSON response. noai meta robots tag on all 25 public HTML pages (api.sitetrace.it.com). 50/day/IP rate limit on /api/openapi via KV to stop spec scrapers. Commit f09cad9. Browser-side DoH on sitetrace.it.com tool pages deliberately kept (privacy feature — advertised on /about). HTML meta live 2026-10-04; middleware X-Robots-Tag + openapi IP cap pending CF Pages function rebuild (2 wrangler.toml double-bumps not deployed yet as of 2026-10-04 ~03:00 UTC).</div>
     </li>
     <li class="roadmap-item">
+      <div class="roadmap-title">Smart /check/ dispatcher on sitetrace.it.com (URL/domain/IP, 4-5 parallel API checks, unified result)</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-04</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">sitetrace/check/index.html. Client-side input classifier (URL vs domain vs IP). Parallel API calls: URL→shot/headers/preview/redirect/wayback, domain→email/certs/rdap/subdomains, IP→reputation. Tailwind + cyan brand. JSON-LD WebApplication+FAQPage. noai robots. AI-gate passed 26%. Commit 8d8a545 on sitetrace repo.</div>
+    </li>
+    <li class="roadmap-item">
       <div class="roadmap-title">Write /docs page on api.sitetrace.it.com (OpenAPI spec + language SDKs)</div>
       <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
       <div class="roadmap-details">Quickstart section with 5-language tabs (curl/js/py/go/rb) + tab-switcher JS + OpenAPI download link. Commit 986a09f.</div>
@@ -189,11 +194,6 @@
       <div class="roadmap-title">Reusable scripts: audit-ai.mjs batch-audit-ai.mjs cyan-pass.mjs add-byline.mjs internal-links.mjs shot.mjs start-edge-debug.ps1</div>
       <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Agent</span></div>
       <div class="roadmap-details">All idempotent, used for current pages and reusable for future</div>
-    </li>
-    <li class="roadmap-item">
-      <div class="roadmap-title">6 git commits pushed to origin/main: f20027e 7759aca 9f80bea 44a3a37 f3558a2 276e808 dfa6418 1d01d16</div>
-      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Agent</span></div>
-      <div class="roadmap-details">Landing redesign, batch 1-4 essays, brand polish, internal links, AGENTS.md polish, Pages redeploy for env refresh</div>
     </li></ul>
     </section>
   </div>

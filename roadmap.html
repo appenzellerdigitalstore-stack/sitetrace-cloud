@@ -146,6 +146,11 @@
       <div class="roadmap-details">scripts/build-roadmap.mjs reads tracker-roadmap.csv and writes roadmap.html. Sections: Now (URGENT), Next, Future, Recently shipped. Cyan theme + linked to GitHub source.</div>
     </li>
     <li class="roadmap-item">
+      <div class="roadmap-title">E2E launch readiness test script</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-04</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">scripts/e2e-launch-test.mjs. 6/6 tests pass on production: disposable block, free signup 1k key, /api/ip call, aggregate quota, /api/openapi spec, /api/webhook-stats. Tests 7-8 skipped (need PADDLE_PRICE_T1). Commit 9f233d9.</div>
+    </li>
+    <li class="roadmap-item">
       <div class="roadmap-title">Write /docs page on api.sitetrace.it.com (OpenAPI spec + language SDKs)</div>
       <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
       <div class="roadmap-details">Quickstart section with 5-language tabs (curl/js/py/go/rb) + tab-switcher JS + OpenAPI download link. Commit 986a09f.</div>
@@ -189,11 +194,6 @@
       <div class="roadmap-title">Decision: T1-T4 linear pricing $9/19/29/49</div>
       <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Ed</span></div>
       <div class="roadmap-details">Linear matches cost structure (no economy of scale). Confirmed by Ed after discussion</div>
-    </li>
-    <li class="roadmap-item">
-      <div class="roadmap-title">Decision: aggregate quota not per-endpoint</div>
-      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Ed</span></div>
-      <div class="roadmap-details">Cleaner pricing, harder to game. Decision logged in ROADMAP.md decisions table</div>
     </li></ul>
     </section>
   </div>

@@ -40,6 +40,13 @@
             <input type="email" id="email" name="email" required placeholder="you@example.com" autocomplete="email" />
             <p class="help">We use this only to recover your key if you lose it. No marketing.</p>
           </div>
+          <!-- Cloudflare Turnstile widget — only renders when the site
+               key is set in the page. If empty, the form still works
+               (Turnstile verification skipped server-side when
+               TURNSTILE_SECRET env var is unset too). -->
+          <div id="turnstile-wrap" style="margin: 16px 0; display: none;">
+            <div class="cf-turnstile" data-sitekey="1x00000000000000000000AA" data-cdata="signup"></div>
+          </div>
           <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px;">Get my API key</button>
         </form>
 
@@ -81,6 +88,26 @@
   </footer>
 
   <script>
+    // Turnstile is only active when Ed has set a real site key. The
+    // placeholder "1x00000000000000000000AA" is their documented
+    // "always passes" test key — used here so the widget can be
+    // tested locally before Ed pastes the real one. When the
+    // placeholder is detected we hide the widget (the server-side
+    // TURNSTILE_SECRET is also unset by default so verification is
+    // skipped either way).
+    (function () {
+      var wrap = document.getElementById('turnstile-wrap');
+      var widget = wrap && wrap.querySelector('.cf-turnstile');
+      if (widget && widget.getAttribute('data-sitekey') !== '1x00000000000000000000AA') {
+        wrap.style.display = 'block';
+        var s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+        s.async = true;
+        s.defer = true;
+        document.head.appendChild(s);
+      }
+    })();
+
     const form = document.getElementById('signup-form');
     const result = document.getElementById('result');
     const err = document.getElementById('error');
@@ -90,6 +117,12 @@
       err.style.display = 'none';
       const email = document.getElementById('email').value.trim();
       if (!email) return;
+      // Pull the Turnstile token if the widget rendered and produced
+      // one. If the widget isn't loaded (Turnstile not configured),
+      // the field is omitted — server-side TURNSTILE_SECRET is also
+      // unset in that case so verification is skipped.
+      const tsTokenEl = document.querySelector('[name="cf-turnstile-response"]');
+      const tsToken = tsTokenEl ? tsTokenEl.value : '';
       const btn = form.querySelector('button');
       btn.disabled = true;
       btn.textContent = 'Creating key…';
@@ -97,12 +130,13 @@
         const r = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email }),
+          body: JSON.stringify(Object.assign({ email }, tsToken ? { 'cf-turnstile-response': tsToken } : {})),
         });
         const data = await r.json();
         if (!r.ok) {
           err.style.display = 'block';
           document.getElementById('error-msg').textContent = data.message || ('HTTP ' + r.status);
+          if (typeof turnstile !== 'undefined') { try { turnstile.reset(); } catch (_) {} }
         } else {
           // Save key to localStorage so the dashboard picks it up
           // without the user having to type ?key= in the URL.

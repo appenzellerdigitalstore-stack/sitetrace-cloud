@@ -74,6 +74,44 @@ function json(obj, status) {
   });
 }
 
+// Cloudflare Turnstile server-side verification. Token is provided by
+// the widget on signup.html. When TURNSTILE_SECRET is unset (Ed hasn't
+// pasted the secret yet), verification is skipped — fall back to
+// disposable-blocklist + IP-cap only. When set, every signup must
+// pass Turnstile; this stops scripted signups that already pass the
+// disposable check.
+async function verifyTurnstile(token, ip, secret) {
+  if (!secret) return { ok: true, skipped: true };
+  if (!token) return { ok: false, error: 'missing_token', message: 'Bot challenge token missing.' };
+  try {
+    const form = new FormData();
+    form.append('secret', secret);
+    form.append('response', token);
+    if (ip) form.append('remoteip', ip);
+    const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: form,
+    });
+    const out = await r.json();
+    if (out.success) return { ok: true };
+    return {
+      ok: false,
+      error: 'turnstile_failed',
+      message: 'Bot challenge failed. Refresh the page and try again.',
+      codes: out['error-codes'] || [],
+    };
+  } catch (e) {
+    // Don't block signups on Turnstile API outages — log + skip.
+    return { ok: true, skipped: 'siteverify_error', err: e.message };
+  }
+}
+
+function clientIp(request) {
+  return request.headers.get('CF-Connecting-IP')
+      || request.headers.get('X-Forwarded-For')?.split(',')[0].trim()
+      || '0.0.0.0';
+}
+
 export async function onRequestPost(context) {
   const { env, request } = context;
   const db = env.DB;
@@ -83,6 +121,21 @@ export async function onRequestPost(context) {
   const email = String((body && body.email) || '').trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email) || email.length > 254) {
     return json({ error: 'invalid_email', message: 'Provide a valid email address.' }, 400);
+  }
+
+  // Bot challenge (optional — only runs when Ed has set TURNSTILE_SECRET).
+  // Skip the disposable check on Turnstile failure so abusers can't tell
+  // whether they failed bot or content.
+  const tsResult = await verifyTurnstile(
+    String((body && body['cf-turnstile-response']) || ''),
+    clientIp(request),
+    env.TURNSTILE_SECRET
+  );
+  if (!tsResult.ok) {
+    return json({
+      error: tsResult.error,
+      message: tsResult.message,
+    }, 400);
   }
 
   // Block disposable / throwaway providers. The error message is

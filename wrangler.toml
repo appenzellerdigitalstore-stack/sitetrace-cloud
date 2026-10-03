@@ -1,5 +1,6 @@
 # =====================================================================
 # Cloudflare Pages configuration for sitetrace-api
+# (deployed 2026-10-02 to refresh env bindings after PADDLE_WEBHOOK_SECRET update)
 # Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
 #
 # Account: 77fe51d9a2d7003d0c9917a3f7d6dcb6

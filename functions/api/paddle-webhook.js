@@ -30,9 +30,12 @@
 //      → Settings → Variables and secrets → + Add
 //        PADDLE_WEBHOOK_SECRET    [Secret]
 //        PADDLE_API_KEY           [Secret, for future use]
-//        PADDLE_PRODUCT_HOBBY     [Plain text, e.g. pro_01abc]
-//        PADDLE_PRODUCT_PRO       [Plain text, e.g. pro_01def]
-//        PADDLE_PRODUCT_VOLUME    [Plain text, e.g. pro_01ghi]
+//        PADDLE_PRODUCT_T1        [Plain text, e.g. pro_01abc]  (NEW linear)
+//        PADDLE_PRODUCT_T2        [Plain text, e.g. pro_01def]  (NEW linear)
+//        PADDLE_PRODUCT_T3        [Plain text, e.g. pro_01ghi]  (NEW linear)
+//        PADDLE_PRODUCT_T4        [Plain text, e.g. pro_01jkl]  (NEW linear)
+//        PADDLE_PRODUCT_HOBBY     [Plain text, e.g. pro_01mno]  (LEGACY sandbox)
+//        PADDLE_PRODUCT_PRO       [Plain text, e.g. pro_01pqr]  (LEGACY sandbox)
 //   5. (Optional but recommended) send Paddle's "Test webhook" button
 //      to verify the endpoint before going live.
 // =====================================================================
@@ -54,9 +57,15 @@ const PLANS = {
 // Helper: derive the plan name from a Paddle product_id
 function planFromProductId(env, productId) {
   if (!productId) return null;
-  if (productId === env.PADDLE_PRODUCT_HOBBY)  return 'hobby';
-  if (productId === env.PADDLE_PRODUCT_PRO)    return 'pro';
-  if (productId === env.PADDLE_PRODUCT_VOLUME) return 'volume';
+  // New linear tiers (T1-T4) — empty price ID = not yet created by Ed.
+  if (env.PADDLE_PRODUCT_T1 && productId === env.PADDLE_PRODUCT_T1) return 'T1';
+  if (env.PADDLE_PRODUCT_T2 && productId === env.PADDLE_PRODUCT_T2) return 'T2';
+  if (env.PADDLE_PRODUCT_T3 && productId === env.PADDLE_PRODUCT_T3) return 'T3';
+  if (env.PADDLE_PRODUCT_T4 && productId === env.PADDLE_PRODUCT_T4) return 'T4';
+  // Legacy sandbox tiers — kept for backward compat with old sandbox subs.
+  if (env.PADDLE_PRODUCT_HOBBY && productId === env.PADDLE_PRODUCT_HOBBY) return 'hobby';
+  if (env.PADDLE_PRODUCT_PRO && productId === env.PADDLE_PRODUCT_PRO) return 'pro';
+  if (env.PADDLE_PRODUCT_VOLUME && productId === env.PADDLE_PRODUCT_VOLUME) return 'volume';
   return null;
 }
 

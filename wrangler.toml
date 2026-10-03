@@ -49,8 +49,19 @@ id = "34a24f07e7e140948b4491df07f0d62d"
 # update the two product IDs in [vars] below. No other code change.
 # ---------------------------------------------------------------------
 [vars]
+# Paddle product IDs (sandbox).
+# 2026-10-02: switched to T1-T4 linear pricing ($9/$19/$29/$49). The T1-T4
+# product/price IDs are placeholders until Ed creates them in Paddle sandbox;
+# for now the code accepts both old (hobby/pro) and new (T1-T4) plan names.
+# When Ed creates the T1-T4 products in Paddle dashboard, paste the new
+# pro_* IDs into PADDLE_PRODUCT_T1/T2/T3/T4 below and the old T1/T2/T3/T4
+# sandbox subs (currently none) will use them.
 PADDLE_PRODUCT_HOBBY = "pro_01m3tc3y6p4sf9xn01zknr03jp"
 PADDLE_PRODUCT_PRO   = "pro_01m3tchdmcwqdpkh6tkarwacar"
+PADDLE_PRODUCT_T1     = ""   # TODO: Ed — create in Paddle sandbox
+PADDLE_PRODUCT_T2     = ""   # TODO: Ed — create in Paddle sandbox
+PADDLE_PRODUCT_T3     = ""   # TODO: Ed — create in Paddle sandbox
+PADDLE_PRODUCT_T4     = ""   # TODO: Ed — create in Paddle sandbox
 
 # ---------------------------------------------------------------------
 # Browser Rendering — headless Chrome for the screenshot API

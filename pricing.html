@@ -45,26 +45,71 @@
           <button type="button" class="btn" id="free-choose-btn">Get a free key</button>
         </div>
 
-        <div class="price-card featured">
-          <div class="name">Hobby <span class="badge">most popular</span></div>
-          <p class="price">$9.99<small> / month</small></p>
+        <div class="price-card">
+          <div class="name">T1</div>
+          <p class="price">$9<small> / month</small></p>
           <ul>
-            <li>5,000 calls/day</li>
+            <li>1,000 calls/day aggregate</li>
+            <li>All APIs</li>
+            <li>Email support</li>
+          </ul>
+          <a href="/dashboard?next=/pricing&plan=T1" class="btn" data-plan="T1" onclick="event.preventDefault(); checkout('T1'); return false;">Subscribe</a>
+        </div>
+
+        <div class="price-card featured">
+          <div class="name">T2 <span class="badge">most popular</span></div>
+          <p class="price">$19<small> / month</small></p>
+          <ul>
+            <li>2,000 calls/day aggregate</li>
             <li>All APIs</li>
             <li>Email support</li>
             <li>Per-endpoint usage stats</li>
           </ul>
-          <a href="/dashboard?next=/pricing&plan=hobby" class="btn btn-primary" data-plan="hobby" onclick="event.preventDefault(); checkout('hobby'); return false;">Subscribe</a>
+          <a href="/dashboard?next=/pricing&plan=T2" class="btn btn-primary" data-plan="T2" onclick="event.preventDefault(); checkout('T2'); return false;">Subscribe</a>
         </div>
 
         <div class="price-card">
-          <div class="name">Pro</div>
+          <div class="name">T3</div>
+          <p class="price">$29<small> / month</small></p>
+          <ul>
+            <li>3,000 calls/day aggregate</li>
+            <li>All APIs</li>
+            <li>Priority email support</li>
+            <li>Status page + changelog feed</li>
+          </ul>
+          <a href="/dashboard?next=/pricing&plan=T3" class="btn" data-plan="T3" onclick="event.preventDefault(); checkout('T3'); return false;">Subscribe</a>
+        </div>
+
+        <div class="price-card">
+          <div class="name">T4</div>
+          <p class="price">$49<small> / month</small></p>
+          <ul>
+            <li>5,000 calls/day aggregate</li>
+            <li>All APIs</li>
+            <li>Priority email support</li>
+            <li>Status page + changelog feed</li>
+          </ul>
+          <a href="/dashboard?next=/pricing&plan=T4" class="btn" data-plan="T4" onclick="event.preventDefault(); checkout('T4'); return false;">Subscribe</a>
+        </div>
+
+        <!-- Legacy tiers (Hobby $9.99, Pro $30) — kept visible during the sandbox
+             transition. When Ed flips to live + new T1-T4 products, these disappear. -->
+        <div class="price-card legacy">
+          <div class="name">Hobby (legacy)</div>
+          <p class="price">$9.99<small> / month</small></p>
+          <ul>
+            <li>5,000 calls/day</li>
+            <li>All APIs</li>
+          </ul>
+          <a href="/dashboard?next=/pricing&plan=hobby" class="btn" data-plan="hobby" onclick="event.preventDefault(); checkout('hobby'); return false;">Subscribe</a>
+        </div>
+
+        <div class="price-card legacy">
+          <div class="name">Pro (legacy)</div>
           <p class="price">$30<small> / month</small></p>
           <ul>
             <li>30,000 calls/day</li>
             <li>All APIs</li>
-            <li>Priority email support</li>
-            <li>Status page + changelog feed</li>
           </ul>
           <a href="/dashboard?next=/pricing&plan=pro" class="btn" data-plan="pro" onclick="event.preventDefault(); checkout('pro'); return false;">Subscribe</a>
         </div>
@@ -131,6 +176,14 @@
     const PADDLE_ENV   = 'sandbox';      // flip to 'production' for live
     const PADDLE_TOKEN = 'test_fe6ada9d2948324a7eab2250ee9'; // sandbox client-side token
     const PRICE_IDS = {
+      // T1-T4 linear pricing — Ed creates the sandbox price IDs in Paddle
+      // dashboard. Empty strings = product not yet created; the Subscribe
+      // button for that tier will show "Pricing not configured yet".
+      T1: '',   // TODO: Ed — paste from Paddle sandbox ($9/mo for 1k calls/day)
+      T2: '',   // TODO: Ed ($19/mo for 2k)
+      T3: '',   // TODO: Ed ($29/mo for 3k)
+      T4: '',   // TODO: Ed ($49/mo for 5k)
+      // Legacy sandbox tiers — kept so existing sandbox customers still work.
       hobby:  'pri_01m3tceygyeetg9smeapr06ae1',   // $9.99/mo USD
       pro:    'pri_01m3tcq9wmrbpn6ps3wdvkd5rc',   // $30/mo USD
     };
@@ -167,7 +220,7 @@
     // =================================================================
     async function checkout(plan) {
       if (!PRICE_IDS[plan]) {
-        alert('That plan is not currently available. Email billing@sitetrace.it.com for help.');
+        alert('That plan is not yet available in Paddle sandbox — Ed is still creating the product. Email billing@sitetrace.it.com for early access.');
         return;
       }
 
@@ -255,7 +308,7 @@
         const plan = (d.user && d.user.plan) || 'free';
         if (plan === 'free') return; // free user — Subscribe is correct
         // Paid user — swap "Subscribe" to "Upgrade to <plan>"
-        const labels = { hobby: 'Hobby', pro: 'Pro', volume: 'Volume' };
+        const labels = { T1: 'T1', T2: 'T2', T3: 'T3', T4: 'T4', hobby: 'Hobby', pro: 'Pro', volume: 'Volume' };
         document.querySelectorAll('[data-plan]').forEach((btn) => {
           const targetPlan = btn.dataset.plan;
           if (labels[targetPlan]) {

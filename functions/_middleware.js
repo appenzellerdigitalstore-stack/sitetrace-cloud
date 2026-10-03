@@ -11,11 +11,25 @@
 // so the endpoint function can read it.
 // =====================================================================
 
+// Pricing tiers — T1-T4 linear, $9-10 per 1k daily calls. Decision
+// (2026-10-02): linear matches our actual cost structure (no economy
+// of scale — every call costs the same). Top tier (T4 = 5k/day) is the
+// practical ceiling: ip-api.com's 45 req/min global limit means real-
+// world max is ~30k/day for any single user anyway.
+// Backward compatibility: free + hobby + pro + volume still work as
+// fallback names so D1 rows from before this commit don't break.
 const PLANS = {
-  free:   { daily: 100,  label: 'Free'   },
-  hobby:  { daily: 5000, label: 'Hobby'  },
-  pro:    { daily: 30000, label: 'Pro'   },
-  volume: { daily: 200000, label: 'Volume' },
+  free:   { daily: 100,    label: 'Free' },
+  // T1-T4: new linear tiers
+  T1:     { daily: 1000,   label: 'T1'    },
+  T2:     { daily: 2000,   label: 'T2'    },
+  T3:     { daily: 3000,   label: 'T3'    },
+  T4:     { daily: 5000,   label: 'T4'    },
+  // Legacy names — kept so old Paddle sandbox subs keep working. When
+  // Ed flips Paddle sandbox -> live, these will go away.
+  hobby:  { daily: 5000,   label: 'Hobby' },
+  pro:    { daily: 30000,  label: 'Pro'   },
+  volume: { daily: 200000, label: 'Volume'},
 };
 
 // Public paths — auth-free. Used for signup, login, webhooks, status probes, etc.

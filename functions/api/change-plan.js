@@ -20,15 +20,27 @@
 // =====================================================================
 
 const PLAN_TO_PRICE = {
-  // Sandbox price IDs. The frontend has matching client-side copies in
-  // pricing.html; these are the source of truth for the backend.
-  hobby:  { price_id: 'pri_01m3tceygyeetg9smeapr06ae1', plan: 'hobby'  },
-  pro:    { price_id: 'pri_01m3tcq9wmrbpn6ps3wdvkd5rc', plan: 'pro'    },
+  // T1-T4 sandbox price IDs. Ed to fill in once the products exist in
+  // Paddle dashboard. Frontend pricing.html will mirror these. Until
+  // then, requests to T1-T4 will return "pricing not configured".
+  T1:     { price_id: '', plan: 'T1' },   // TODO: Ed — paste from Paddle
+  T2:     { price_id: '', plan: 'T2' },   // TODO: Ed
+  T3:     { price_id: '', plan: 'T3' },   // TODO: Ed
+  T4:     { price_id: '', plan: 'T4' },   // TODO: Ed
+  // Legacy: sandbox price IDs (Hobby $9.99, Pro $30). Kept so existing
+  // sandbox customers can still change plan during testing.
+  hobby:  { price_id: 'pri_01m3tceygyeetg9smeapr06ae1', plan: 'hobby' },
+  pro:    { price_id: 'pri_01m3tcq9wmrbpn6ps3wdvkd5rc', plan: 'pro'   },
   // volume: archived — no price; if requested, error.
 };
 
 const PLAN_QUOTAS = {
   free:   100,
+  T1:     1000,
+  T2:     2000,
+  T3:     3000,
+  T4:     5000,
+  // Legacy
   hobby:  5000,
   pro:    30000,
   volume: 200000,

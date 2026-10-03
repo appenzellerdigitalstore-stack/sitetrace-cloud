@@ -347,10 +347,13 @@ export async function onRequest(context) {
 
     const resp = await next();
     logCall(db, user.api_key, endpoint, resp.status);
-    // Add rate-limit headers
+    // Add rate-limit headers + X-Robots-Tag (LM-training opt-out)
     const newResp = new Response(resp.body, resp);
     newResp.headers.set('X-RateLimit-Limit', String(quota));
     newResp.headers.set('X-RateLimit-Remaining', String(Math.max(0, quota - (used + 1))));
+    if (!newResp.headers.has('X-Robots-Tag')) {
+      newResp.headers.set('X-Robots-Tag', 'noai, noimageai');
+    }
     return newResp;
   }
 
@@ -381,5 +384,10 @@ export async function onRequest(context) {
 
   const resp = await next();
   logCall(db, 'ip:' + ip, endpoint, resp.status);
-  return resp;
+  // Wrap to add X-Robots-Tag (LM-training opt-out — see /terms §7b)
+  const newResp = new Response(resp.body, resp);
+  if (!newResp.headers.has('X-Robots-Tag')) {
+    newResp.headers.set('X-Robots-Tag', 'noai, noimageai');
+  }
+  return newResp;
 }

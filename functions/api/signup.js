@@ -80,6 +80,10 @@ function json(obj, status) {
 // disposable-blocklist + IP-cap only. When set, every signup must
 // pass Turnstile; this stops scripted signups that already pass the
 // disposable check.
+//
+// Also blocked if Turnstile widget fails verification — the
+// disposable check still runs after, but the response is the same
+// generic shape so abusers can't tell which layer rejected them.
 async function verifyTurnstile(token, ip, secret) {
   if (!secret) return { ok: true, skipped: true };
   if (!token) return { ok: false, error: 'missing_token', message: 'Bot challenge token missing.' };

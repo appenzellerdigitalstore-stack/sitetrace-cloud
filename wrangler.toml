@@ -1,6 +1,6 @@
 # =====================================================================
 # Cloudflare Pages configuration for sitetrace-api
-# (deployed 2026-10-04 — double-bump 2/2 to push inlined signup.js blocklist)
+# (deployed 2026-10-04 — bump 1/2 to ship IP cap in _middleware.js + openapi.js encoding fix)
 # Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
 #
 # Account: 77fe51d9a2d7003d0c9917a3f7d6dcb6

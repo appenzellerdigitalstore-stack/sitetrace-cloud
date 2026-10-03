@@ -1,13 +1,20 @@
 // scripts/build-roadmap.mjs
 //
-// Reads tracker-roadmap.csv from this repo's root and renders the
+// Reads tracker-roadmap.csv from the PRIVATE sitetrace-tracker repo
+// (sibling directory: ../sitetrace-tracker/) and renders the
 // "Now / Next / Future / Recently shipped" sections of /roadmap.html.
 //
 // Usage:  node scripts/build-roadmap.mjs
+//         TRACKER_CSV=/path/to/tracker-roadmap.csv node scripts/build-roadmap.mjs
 //
 // Output: writes ./roadmap.html (overwrites). Commit the result.
-// Idempotent — running it again produces a byte-identical file (modulo
-// whitespace) when the CSV is unchanged.
+//
+// Why the CSV lives outside this repo:
+//   tracker-roadmap.csv contains Ed's budget, decisions, operational
+//   rules, and other personal info. It's now in the PRIVATE repo
+//   appenzellerdigitalstore-stack/sitetrace-tracker. This script reads
+//   it from there and only ships a sanitized public version of the
+//   roadmap. See sitetrace-tracker/README.md for the full split.
 //
 // Sections come from the Section column:
 //   - "Roadmap" items with Priority URGENT -> "Now"
@@ -17,17 +24,26 @@
 //
 // Anti-feature: we deliberately skip Decision / Bug / Risk / Number
 // rows from the public roadmap. Internal state is noisy and not what
-// paying customers want to read. The full CSV is in the repo at
-// tracker-roadmap.csv for anyone who cares.
+// paying customers want to read.
 
 import { readFileSync, writeFileSync } from 'node:fs';
-import { resolve, dirname } from 'node:path';
+import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { existsSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const CSV_PATH = resolve(ROOT, 'tracker-roadmap.csv');
+
+// Default: read from sibling private repo. Override with TRACKER_CSV env var.
+const DEFAULT_CSV = join(ROOT, '..', 'sitetrace-tracker', 'tracker-roadmap.csv');
+const CSV_PATH = process.env.TRACKER_CSV || DEFAULT_CSV;
 const HTML_PATH = resolve(ROOT, 'roadmap.html');
+
+if (!existsSync(CSV_PATH)) {
+  console.error(`tracker CSV not found at: ${CSV_PATH}`);
+  console.error(`Either clone sitetrace-tracker next to sitetrace-api, or set TRACKER_CSV env var.`);
+  process.exit(1);
+}
 
 function parseCsv(text) {
   const lines = text.split(/\r?\n/).filter(l => l.length > 0);
@@ -198,7 +214,7 @@ const html = `<!doctype html>
     </div>
   </footer>
 
-  <p class="updated-at" style="text-align: center;">Generated ${generatedAt} · <a href="https://github.com/appenzellerdigitalstore-stack/sitetrace-cloud/blob/main/tracker-roadmap.csv">source: tracker-roadmap.csv</a></p>
+  <p class="updated-at" style="text-align: center;">Generated ${generatedAt} · source: private tracker (sitetrace-tracker repo, not public)</p>
 </body>
 </html>
 `;

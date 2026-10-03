@@ -28,3 +28,12 @@ yarn-error.log*
 # build outputs
 build/
 out/
+
+# ---- Personal / non-public ----
+# Project tracker, decisions, and personal notes live in the PRIVATE
+# repo appenzellerdigitalstore-stack/sitetrace-tracker. Never commit
+# these here — they contain Ed's budget, decisions, and operational rules.
+tracker-roadmap.csv
+ROADMAP.md
+.github-api-body.json
+scripts/push-tracker.mjs

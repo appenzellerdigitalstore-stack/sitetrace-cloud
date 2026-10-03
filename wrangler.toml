@@ -1,6 +1,6 @@
 # =====================================================================
 # Cloudflare Pages configuration for sitetrace-api
-# (deployed 2026-10-04 — bump 2/2 to push anti-theft middleware changes (X-Robots-Tag + openapi IP cap))
+# (deployed 2026-10-04 — bump 1/2 retry to push anti-theft middleware (X-Robots-Tag + openapi IP cap))
 # Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
 #
 # Account: 77fe51d9a2d7003d0c9917a3f7d6dcb6

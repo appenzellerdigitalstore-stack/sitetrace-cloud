@@ -4,15 +4,18 @@
 // POST /api/signup   body: { email: "you@example.com" }
 //
 // Creates a free-tier user (1,000 calls/day) and returns the API key.
-// One signup per email. No email verification for the free tier —
-// abuse is mitigated by the per-IP rate limit on the unauth path
-// (the free API key is "1,000/day" but the user is the one bearing
-// the cost of the IP, not us).
+// One signup per email. Disposable / throwaway providers (10minutemail,
+// Mailinator, etc.) are rejected with 400 to block the cheapest abuse
+// vector (scripted signups). Email verification is NOT required —
+// abuse mitigation is layered: IP rate-limit + disposable block +
+// per-user daily quota.
 //
 // If the user is already in the DB, return the existing key (so
 // they can re-find it without a separate login flow on the free
 // tier).
 // =====================================================================
+
+import { isDisposableEmail } from './_lib/disposable-emails.js';
 
 function newApiKey() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
@@ -50,6 +53,17 @@ export async function onRequestPost(context) {
   const email = String((body && body.email) || '').trim().toLowerCase();
   if (!email || !EMAIL_RE.test(email) || email.length > 254) {
     return json({ error: 'invalid_email', message: 'Provide a valid email address.' }, 400);
+  }
+
+  // Block disposable / throwaway providers. The error message is
+  // deliberately generic (we don't want to tell abusers exactly which
+  // list they're on) — they get the same shape as 'invalid_email' but
+  // a distinct error code so we can measure the abuse rate.
+  if (isDisposableEmail(email)) {
+    return json({
+      error: 'disposable_email_blocked',
+      message: 'Please use a permanent email address. Free throwaway providers are not allowed.',
+    }, 400);
   }
 
   // Existing user? Return their key.

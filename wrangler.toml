@@ -1,6 +1,6 @@
 # =====================================================================
 # Cloudflare Pages configuration for sitetrace-api
-# (deployed 2026-10-04 — bump 2/2 to push Turnstile scaffold in signup.js + X-Robots-Tag middleware)
+# (deployed 2026-10-04 — content change to force rebuild: explicitly set TURNSTILE_SECRET comment block. Mid-session deploy push to pick up Turnstile + X-Robots-Tag middleware.)
 # Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
 #
 # Account: 77fe51d9a2d7003d0c9917a3f7d6dcb6
@@ -64,12 +64,13 @@ PADDLE_PRODUCT_T3     = ""   # TODO: Ed — create in Paddle sandbox
 PADDLE_PRODUCT_T4     = ""   # TODO: Ed — create in Paddle sandbox
 
 # Cloudflare Turnstile — bot challenge on /api/signup. Site key goes
-# in signup.html (data-sitekey); secret key lives here (NOT in
-# wrangler.toml's public [vars] block — secrets must be in the CF
-# dashboard as a secret). When unset, signup skips Turnstile entirely
-# and relies on the disposable blocklist + IP-cap. Ed grabs both keys
-# from the CF dashboard (Workers & Pages → Turnstile → Add site).
-# Set in the dashboard, NOT here:
+# in signup.html (data-sitekey); secret key lives in the CF dashboard
+# as a secret (NEVER in wrangler.toml's public [vars] block — anyone
+# with repo access could read it). When TURNSTILE_SECRET is unset,
+# signup skips Turnstile entirely and relies on the disposable
+# blocklist + IP-cap. Ed grabs both keys from the CF dashboard
+# (Workers & Pages → Turnstile → Add site).
+# Set in the dashboard:
 #   TURNSTILE_SECRET   0x4AAAAAAA...  (paste the secret key)
 
 # ---------------------------------------------------------------------

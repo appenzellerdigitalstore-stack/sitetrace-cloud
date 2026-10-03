@@ -269,6 +269,41 @@ export async function onRequest(context) {
       });
     }
 
+    // IP-level cap (anti multi-account abuse). Free-with-key accounts
+    // share a 1000/day budget per IP across all free accounts on that
+    // IP — without this, an abuser signs up N free accounts and gets
+    // N × 1000/day. Paid users (T1-T4, etc.) bypass this; their per-
+    // user quota already protects the abuse vector and they shouldn't
+    // be penalized for a noisy IP neighbor.
+    const IP_USER_CAP = 1000;
+    if (user.plan === 'free' && env.RATELIMIT) {
+      const ip = clientIp(request);
+      const date = todayUtc();
+      const kvKey = 'ipcap:' + ip + ':' + date;
+      const currentStr = await env.RATELIMIT.get(kvKey);
+      const currentCount = currentStr ? parseInt(currentStr, 10) : 0;
+      if (currentCount >= IP_USER_CAP) {
+        logCall(db, user.api_key, endpoint, 429);
+        return jsonResponse({
+          error: 'ip_user_cap',
+          message: 'Your IP has used all ' + IP_USER_CAP + ' free calls today across all free accounts. Try again tomorrow, or pick a paid plan (T1-T4: $9-$49/mo).',
+          used: currentCount,
+          quota: IP_USER_CAP,
+          plan: 'free',
+          upgrade_url: 'https://api.sitetrace.it.com/pricing',
+        }, 429, {
+          'X-RateLimit-Limit': String(IP_USER_CAP),
+          'X-RateLimit-Remaining': '0',
+          'Retry-After': '3600',
+        });
+      }
+      // Read-modify-write — eventually consistent (concurrent calls may
+      // race and slightly under-count). Acceptable for a soft cap; an
+      // abuser that races their way past 1000 still hits the user
+      // quota on the next request from any account on the IP.
+      await env.RATELIMIT.put(kvKey, String(currentCount + 1), { expirationTtl: 86400 * 2 });
+    }
+
     // Charge the call
     await incrementUserUsage(db, user.id, endpoint);
 

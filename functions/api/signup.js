@@ -15,7 +15,37 @@
 // tier).
 // =====================================================================
 
-import { isDisposableEmail } from './_lib/disposable-emails.js';
+// Inline the blocklist (60+ domains) rather than importing from
+// functions/api/_lib/disposable-emails.js — CF Pages Functions don't
+// always pick up newly-added subdirectory modules on first deploy, so
+// inlining guarantees the list ships with this file.
+const DISPOSABLE_DOMAINS = new Set([
+  '10minutemail.com','10minutemail.net','10minutemail.org',
+  'guerrillamail.com','guerrillamail.net','guerrillamail.org','guerrillamail.biz',
+  'mailinator.com','mailinator.net','mailinator.org',
+  'tempmail.com','temp-mail.org','temp-mail.io',
+  'yopmail.com','yopmail.net','yopmail.fr',
+  'throwawaymail.com','getnada.com','sharklasers.com',
+  'trashmail.com','trashmail.net','trashmail.org',
+  'fakeinbox.com','maildrop.cc','dispostable.com',
+  'mintemail.com','mohmal.com','tempemail.com',
+  'tempr.email','tempmail.email','discard.email',
+  'discardmail.com','mailcatch.com','mailnesia.com',
+  'mailnator.com','mailtemp.info','tempmailer.com',
+  'spamgourmet.com','spambox.us','tempmailo.com',
+  'wegwerfemail.de','wegwerfemail.net','wegwerfemail.org',
+  'byespm.com','byom.de','tempinbox.com',
+  'tempmail.us','tempmailaddress.com','meltmail.com',
+  'jetable.org','spambog.com','spambog.de','spambog.ru',
+  'rcpt.at','rmqkr.net','tempemail.net','tempemail.org',
+  'spamavert.com','tempmail.de','trbvm.com','filzmail.com',
+]);
+function isDisposableEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  const at = email.lastIndexOf('@');
+  if (at < 0) return false;
+  return DISPOSABLE_DOMAINS.has(email.slice(at + 1).toLowerCase().trim());
+}
 
 function newApiKey() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';

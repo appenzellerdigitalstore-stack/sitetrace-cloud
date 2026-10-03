@@ -43,8 +43,9 @@ const PUBLIC_PATHS = new Set([
   // wrong (it's an admin/monitoring call, not an API call).
   '/api/webhook-stats',
   // OpenAPI spec — used by /docs page for download link + by SDK
-  // generators. Public read, doesn't burn user quota.
-  '/api/openapi.json',
+  // generators. Public read, doesn't burn user quota. No .json
+  // extension because CF Pages treats .json URLs as static files.
+  '/api/openapi',
   // Signup is already public but listing it here makes the
   // "no-auth-needed" set explicit.
   '/api/signup',

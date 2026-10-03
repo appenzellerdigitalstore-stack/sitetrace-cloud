@@ -106,12 +106,17 @@ async function incrementUserUsage(db, userId, endpoint) {
   ).bind(userId, endpoint, date).run();
 }
 
-async function getUserUsage(db, userId, endpoint) {
+async function getUserUsage(db, userId) {
+  // AGGREGATE quota: sum across all endpoints for today.
+  // The per-endpoint rows are still written (see incrementUserUsage below)
+  // so /api/account can show a breakdown by endpoint for analytics, but
+  // the quota check itself is against the daily total — matches what
+  // users see in the pricing page ("X calls/day" not "X calls/endpoint/day").
   const date = todayUtc();
   const row = await db.prepare(
-    'SELECT count FROM usage WHERE user_id = ? AND endpoint = ? AND date = ?'
-  ).bind(userId, endpoint, date).first();
-  return row ? row.count : 0;
+    'SELECT COALESCE(SUM(count), 0) AS total FROM usage WHERE user_id = ? AND date = ?'
+  ).bind(userId, date).first();
+  return row ? row.total : 0;
 }
 
 async function incrementIpLimit(db, ip) {
@@ -218,17 +223,18 @@ export async function onRequest(context) {
       }, 403);
     }
 
-    // Quota check
-    const used = await getUserUsage(db, user.id, endpoint);
+    // Quota check — AGGREGATE across all endpoints (see getUserUsage).
+    const used = await getUserUsage(db, user.id);
     const quota = user.daily_quota || PLANS[user.plan]?.daily || 100;
     if (used >= quota) {
       logCall(db, user.api_key, endpoint, 429);
       return jsonResponse({
         error: 'quota_exceeded',
-        message: 'Daily quota reached for ' + endpoint + '.',
+        message: 'Daily quota reached across all endpoints. Aggregate cap is ' + quota + ' calls/day.',
         plan: user.plan,
         used,
         quota,
+        endpoint_used: endpoint,
         resets_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
         upgrade_url: 'https://api.sitetrace.it.com/pricing',
       }, 429, {

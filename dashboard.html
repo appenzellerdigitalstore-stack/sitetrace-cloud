@@ -56,11 +56,17 @@
 
     <section>
       <h2>Today's usage</h2>
-      <p class="muted">Resets at UTC midnight. <a href="#" id="refresh">Refresh</a></p>
+      <p class="muted">Aggregate cap across all endpoints — resets at UTC midnight. <a href="#" id="refresh">Refresh</a></p>
+      <p style="margin: 8px 0 16px 0; font-size: 18px;">
+        <strong id="usage-total">…</strong>
+        <span class="muted"> / </span>
+        <strong id="usage-quota">…</strong>
+        <span class="muted"> calls/day &nbsp;·&nbsp; <span id="usage-pct">…</span></span>
+      </p>
       <table>
-        <thead><tr><th>Endpoint</th><th>Calls today</th><th>Daily quota</th><th>% used</th></tr></thead>
+        <thead><tr><th>Endpoint</th><th>Calls today</th><th>Notes</th></tr></thead>
         <tbody id="usage-body">
-          <tr><td colspan="4" class="muted">Loading…</td></tr>
+          <tr><td colspan="3" class="muted">Loading…</td></tr>
         </tbody>
       </table>
     </section>
@@ -228,11 +234,15 @@ with open('shot.png', 'wb') as f:
       const body = document.getElementById('usage-body');
       const ENDPOINTS = ['shot', 'ip', 'email', 'headers', 'preview', 'certs'];
       const used = d.usage.by_endpoint;
+      const total = d.usage.total;
+      const quota = d.user.daily_quota;
+      const pct = Math.min(100, Math.round((total / quota) * 100));
+      document.getElementById('usage-total').textContent = total.toLocaleString();
+      document.getElementById('usage-quota').textContent = quota.toLocaleString();
+      document.getElementById('usage-pct').textContent = pct + '% used';
       body.innerHTML = ENDPOINTS.map(ep => {
         const c = used[ep] || 0;
-        const pct = Math.min(100, Math.round((c / d.user.daily_quota) * 100));
-        const bar = `<div style="background: var(--code-bg); border-radius: 3px; height: 8px; width: 100px; overflow: hidden;"><div style="background: ${pct > 80 ? 'var(--bad)' : pct > 50 ? 'var(--warn)' : 'var(--good)'}; width: ${pct}%; height: 100%;"></div></div>`;
-        return `<tr><td><code>/api/${ep}</code></td><td>${c.toLocaleString()}</td><td>${d.user.daily_quota.toLocaleString()}</td><td>${bar} ${pct}%</td></tr>`;
+        return `<tr><td><code>/api/${ep}</code></td><td>${c.toLocaleString()}</td><td class="muted">informational only — quota is aggregate</td></tr>`;
       }).join('');
       // Free-tier upsell — show a card with an Upgrade to Hobby button.
       // In-app upsell is the highest-converting surface for free users

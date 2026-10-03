@@ -38,15 +38,16 @@ export async function onRequestGet(context) {
   const days = [];
   for (let i = 0; i < 7; i++) days.push(utcDateNDaysAgo(i));
 
-  // Read all keys in one Promise.all. 14 keys max (total + status codes
-  // per day) — KV has no batch get endpoint so we issue parallel gets.
+  // Read all keys in one Promise.all. KV has no batch get endpoint so
+  // we issue parallel gets. Key order MUST match the by_status index
+  // mapping below — index 1 = 200, index 2 = 400, index 3 = 401, etc.
   const keys = days.flatMap(d => [
-    `wh:${d}:total`,
-    `wh:${d}:200`,
-    `wh:${d}:401`,
-    `wh:${d}:400`,
-    `wh:${d}:500`,
-    `wh:${d}:503`,
+    `wh:${d}:total`,   // index 0
+    `wh:${d}:200`,     // index 1
+    `wh:${d}:400`,     // index 2
+    `wh:${d}:401`,     // index 3
+    `wh:${d}:500`,     // index 4
+    `wh:${d}:503`,     // index 5
   ]);
   const values = await Promise.all(keys.map(k => env.RATELIMIT.get(k)));
 

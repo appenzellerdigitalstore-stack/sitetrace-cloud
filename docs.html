@@ -29,6 +29,90 @@
     <section class="hero" style="padding-top: 60px; border-top: none;">
       <h1>Documentation</h1>
       <p class="lede">One API key works on all 6 endpoints. Free tier is 100 calls/day, no signup. Get a key for 1,000/day at <a href="/signup/">/signup</a>.</p>
+      <p class="muted" style="margin-top: 8px;">
+        <a href="/api/openapi.json" download="sitetrace-openapi.json">Download OpenAPI 3.1 spec</a>
+        &middot; <a href="/signup/">Get a free key</a>
+        &middot; <a href="/pricing/">See pricing</a>
+      </p>
+    </section>
+
+    <section>
+      <h2>Quickstart</h2>
+      <p>Hit any endpoint without a key for the free no-signup tier (100/day per IP). With a key, daily quota jumps to 1,000+ depending on plan. Same response shape either way.</p>
+      <div class="code-tabs">
+        <div class="tabs">
+          <button class="tab active" data-tab="curl">curl</button>
+          <button class="tab" data-tab="js">JavaScript</button>
+          <button class="tab" data-tab="py">Python</button>
+          <button class="tab" data-tab="go">Go</button>
+          <button class="tab" data-tab="rb">Ruby</button>
+        </div>
+        <pre class="active" data-tab="curl"><code># Screenshot a URL — returns PNG
+curl "https://api.sitetrace.it.com/api/shot?url=https://example.com" \
+  -H "Authorization: Bearer stk_your_key" \
+  --output shot.png
+
+# IP reputation — returns JSON
+curl "https://api.sitetrace.it.com/api/ip?ip=1.2.3.4" \
+  -H "Authorization: Bearer stk_your_key"
+
+# Email deliverability — returns JSON
+curl "https://api.sitetrace.it.com/api/email?domain=example.com" \
+  -H "Authorization: Bearer stk_your_key"</code></pre>
+        <pre data-tab="js"><code>// Standard fetch() — regular REST API.
+const r = await fetch('https://api.sitetrace.it.com/api/ip?ip=1.2.3.4', {
+  headers: { Authorization: 'Bearer stk_your_key' }
+});
+const data = await r.json();
+console.log(data);
+
+// For screenshots (returns PNG blob):
+const png = await fetch('https://api.sitetrace.it.com/api/shot?url=https://example.com', {
+  headers: { Authorization: 'Bearer stk_your_key' }
+}).then(r => r.blob());</code></pre>
+        <pre data-tab="py"><code>import requests
+
+# JSON endpoint
+r = requests.get(
+    'https://api.sitetrace.it.com/api/ip',
+    params={'ip': '1.2.3.4'},
+    headers={'Authorization': 'Bearer stk_your_key'},
+)
+print(r.json())
+
+# PNG screenshot
+r = requests.get(
+    'https://api.sitetrace.it.com/api/shot',
+    params={'url': 'https://example.com'},
+    headers={'Authorization': 'Bearer stk_your_key'},
+)
+with open('shot.png', 'wb') as f:
+    f.write(r.content)</code></pre>
+        <pre data-tab="go"><code>package main
+
+import (
+    "io"
+    "net/http"
+)
+
+func main() {
+    req, _ := http.NewRequest("GET",
+        "https://api.sitetrace.it.com/api/ip?ip=1.2.3.4", nil)
+    req.Header.Set("Authorization", "Bearer stk_your_key")
+    resp, _ := http.DefaultClient.Do(req)
+    defer resp.Body.Close()
+    data, _ := io.ReadAll(resp.Body)
+    println(string(data))
+}</code></pre>
+        <pre data-tab="rb"><code>require 'net/http'
+require 'uri'
+
+uri = URI('https://api.sitetrace.it.com/api/ip?ip=1.2.3.4')
+req = Net::HTTP::Get.new(uri)
+req['Authorization'] = 'Bearer stk_your_key'
+res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |h| h.request(req) }
+puts res.body</code></pre>
+      </div>
     </section>
 
     <section>
@@ -113,5 +197,21 @@ X-RateLimit-Reset: 1735689600   (unix ts of next UTC midnight)</code></pre>
       </div>
     </div>
   </footer>
+
+  <script>
+    // Tab switcher for the Quickstart code blocks.
+    // Idempotent — bind once per .code-tabs block on the page.
+    document.querySelectorAll('.code-tabs').forEach(group => {
+      const tabs = group.querySelectorAll('.tab');
+      const pres = group.querySelectorAll('pre');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          const target = tab.dataset.tab;
+          tabs.forEach(t => t.classList.toggle('active', t === tab));
+          pres.forEach(p => p.classList.toggle('active', p.dataset.tab === target));
+        });
+      });
+    });
+  </script>
 </body>
 </html>

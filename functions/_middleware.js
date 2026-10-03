@@ -42,6 +42,12 @@ const PUBLIC_PATHS = new Set([
   // (just delivery counts), and counting it against user quota would be
   // wrong (it's an admin/monitoring call, not an API call).
   '/api/webhook-stats',
+  // OpenAPI spec — used by /docs page for download link + by SDK
+  // generators. Public read, doesn't burn user quota.
+  '/api/openapi.json',
+  // Signup is already public but listing it here makes the
+  // "no-auth-needed" set explicit.
+  '/api/signup',
 ]);
 
 // Static-asset paths under /api/ (e.g. swagger.json) — also public.

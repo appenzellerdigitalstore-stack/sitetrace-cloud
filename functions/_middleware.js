@@ -85,6 +85,9 @@ function jsonResponse(obj, status, extraHeaders) {
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       'Access-Control-Max-Age': '86400',
+      // AI training opt-out. Honored by GPTBot, ClaudeBot, CommonCrawl,
+      // and most major dataset operators. See /terms §7b.
+      'X-Robots-Tag': 'noai, noimageai',
     }, extraHeaders || {}),
   });
 }
@@ -215,6 +218,26 @@ export async function onRequest(context) {
 
   // Public /api/ endpoints (signup, login, webhooks, dynamic OG)
   if (isPublic(path)) {
+    // Per-IP rate limit on /api/openapi to prevent scrapers from
+    // endlessly redownloading the spec. The spec changes once per
+    // release at most; 50/day/IP is plenty for humans and SDK
+    // generators, hard cap for scrapers.
+    if (path === '/api/openapi' && env.RATELIMIT) {
+      const ip = clientIp(request);
+      const date = todayUtc();
+      const kvKey = 'openapi:' + ip + ':' + date;
+      const currentStr = await env.RATELIMIT.get(kvKey);
+      const currentCount = currentStr ? parseInt(currentStr, 10) : 0;
+      if (currentCount >= 50) {
+        return jsonResponse({
+          error: 'openapi_rate_limited',
+          message: 'Too many spec downloads from your IP today. Cache the spec locally — it changes at most once per release.',
+          used: currentCount,
+          quota: 50,
+        }, 429, { 'Retry-After': '3600' });
+      }
+      await env.RATELIMIT.put(kvKey, String(currentCount + 1), { expirationTtl: 86400 * 2 });
+    }
     data.public = true;
     return next();
   }

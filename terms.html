@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Terms of Service — sitetrace API</title>
   <meta name="description" content="The rules and agreements for using sitetrace API." />
+  <meta name="robots" content="index, follow, noai, noimageai" />
   <link rel="canonical" href="https://api.sitetrace.it.com/terms/" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
@@ -67,6 +68,20 @@
       <h2>7. Intellectual property</h2>
       <p>The service, brand, code, and documentation are owned by us. You retain ownership of the data you send to the API and the data you receive back — you may use API responses for any lawful purpose, including commercial products.</p>
       <p>We may use anonymized, aggregated usage data (e.g., "1,234 requests today") to improve the service. We don't share individual customer data.</p>
+
+      <h3>7a. No cloning or scraping of the public site or API</h3>
+      <p>You agree not to:</p>
+      <ul>
+        <li>Systematically scrape, mirror, or bulk-download the sitetrace.it.com or api.sitetrace.it.com websites (including the consumer tool pages, docs, blog posts, and the OpenAPI spec) for the purpose of building a competing product.</li>
+        <li>Rehost, republish, or embed the consumer tool pages (DNS / IP / email / headers / SSL / SEO tools) on a third-party domain in a way that competes with sitetrace.it.com.</li>
+        <li>Reverse-engineer the scoring algorithms, selector lists, weight tables, or signal-computation logic exposed by our public endpoints in order to build a copy of the service.</li>
+        <li>Bypass or attempt to bypass rate limits, CAPTCHAs, IP caps, or other anti-abuse controls implemented at any layer.</li>
+      </ul>
+      <p>Casual personal use — including citing, linking to, screenshotting, or summarizing our content — is welcome and encouraged. The line is at "build a clone of sitetrace and operate it as a competing service."</p>
+
+      <h3>7b. No use for AI / LLM training</h3>
+      <p>All content on sitetrace.it.com and api.sitetrace.it.com (including docs, blog posts, tool results, OpenAPI spec, and free-tier API responses) is <strong>explicitly opted out</strong> of being used as input for training, fine-tuning, or evaluating any large language model, embedding model, image model, or other machine-learning system. This restriction follows the <code>noai</code> and <code>noimageai</code> directives in the <code>X-Robots-Tag</code> response header and HTML <code>robots</code> meta tag. Operators of crawlers, scrapers, and datasets (including Common Crawl, GPTBot, ClaudeBot, CCBot, and successors) are expected to honor this signal.</p>
+      <p>API customers who use our endpoints in their own LLM pipelines (e.g. calling /api/headers to enrich an LLM's prompt) are unaffected — this clause is about training on the data we publish, not about consuming it.</p>
 
       <h2>8. Disclaimer and liability</h2>
       <p>The service is provided "as is" without warranties of any kind. To the maximum extent permitted by law, our total liability for any claim arising from your use of the service is limited to the amount you paid us in the 12 months preceding the claim, or USD $100, whichever is greater.</p>

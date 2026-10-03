@@ -239,7 +239,16 @@ export async function onRequest(context) {
       await env.RATELIMIT.put(kvKey, String(currentCount + 1), { expirationTtl: 86400 * 2 });
     }
     data.public = true;
-    return next();
+    // Wrap the function's response to add X-Robots-Tag (LM-training
+    // opt-out — see /terms §7b). Endpoints like /api/openapi return
+    // their own Response objects (cache headers, content-type) that
+    // bypass jsonResponse(), so we re-wrap here.
+    const resp = await next();
+    const wrapped = new Response(resp.body, resp);
+    if (!wrapped.headers.has('X-Robots-Tag')) {
+      wrapped.headers.set('X-Robots-Tag', 'noai, noimageai');
+    }
+    return wrapped;
   }
 
   // Health endpoint is also public

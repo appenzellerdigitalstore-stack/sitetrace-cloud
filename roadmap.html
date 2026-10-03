@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Roadmap — sitetrace API</title>
   <meta name="description" content="What we're shipping now, next, and beyond on sitetrace API. Updated from the project tracker." />
-  <meta name="robots" content="index, follow, noai, noimageai" />
+  <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://api.sitetrace.it.com/roadmap/" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
@@ -151,6 +151,11 @@
       <div class="roadmap-details">scripts/e2e-launch-test.mjs. 6/6 tests pass on production: disposable block, free signup 1k key, /api/ip call, aggregate quota, /api/openapi spec, /api/webhook-stats. Tests 7-8 skipped (need PADDLE_PRICE_T1). Commit 9f233d9.</div>
     </li>
     <li class="roadmap-item">
+      <div class="roadmap-title">Anti-clone + no-LM-training protections</div>
+      <div class="roadmap-meta"><span class="muted small">2026-10-04</span> · <span class="muted small">Agent</span></div>
+      <div class="roadmap-details">Terms §7a (no cloning/scraping/rehosting) + §7b (no LLM/embedding training). X-Robots-Tag: noai,noimageai on every middleware JSON response. noai meta robots tag on all 25 public HTML pages (api.sitetrace.it.com). 50/day/IP rate limit on /api/openapi via KV to stop spec scrapers. Commit f09cad9. Browser-side DoH on sitetrace.it.com tool pages deliberately kept (privacy feature — advertised on /about).</div>
+    </li>
+    <li class="roadmap-item">
       <div class="roadmap-title">Write /docs page on api.sitetrace.it.com (OpenAPI spec + language SDKs)</div>
       <div class="roadmap-meta"><span class="muted small">2026-10-03</span> · <span class="muted small">Agent</span></div>
       <div class="roadmap-details">Quickstart section with 5-language tabs (curl/js/py/go/rb) + tab-switcher JS + OpenAPI download link. Commit 986a09f.</div>
@@ -189,11 +194,6 @@
       <div class="roadmap-title">6 git commits pushed to origin/main: f20027e 7759aca 9f80bea 44a3a37 f3558a2 276e808 dfa6418 1d01d16</div>
       <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Agent</span></div>
       <div class="roadmap-details">Landing redesign, batch 1-4 essays, brand polish, internal links, AGENTS.md polish, Pages redeploy for env refresh</div>
-    </li>
-    <li class="roadmap-item">
-      <div class="roadmap-title">Decision: T1-T4 linear pricing $9/19/29/49</div>
-      <div class="roadmap-meta"><span class="muted small">2026-10-02</span> · <span class="muted small">Ed</span></div>
-      <div class="roadmap-details">Linear matches cost structure (no economy of scale). Confirmed by Ed after discussion</div>
     </li></ul>
     </section>
   </div>
